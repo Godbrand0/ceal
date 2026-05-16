@@ -174,14 +174,19 @@ create policy "messages: public read"
 -- ============================================================
 
 -- leaderboard: top profiles by total gifts received
+-- recipient is determined by comparing sender to match parties
 create or replace view gift_leaderboard as
 select
-  m.content as gift_json,
-  count(*)   as gift_count,
-  sum((m.gift_data->>'amount')::numeric) as total_cusd
+  case
+    when m.sender = ma.user1 then ma.user2
+    else ma.user1
+  end                                               as recipient,
+  count(*)                                          as gift_count,
+  sum((m.gift_data->>'amount')::numeric)            as total_cusd
 from messages m
+join matches ma on ma.id = m.match_id
 where m.gift_data is not null
-group by m.gift_json
+group by 1
 order by total_cusd desc nulls last;
 
 -- ============================================================

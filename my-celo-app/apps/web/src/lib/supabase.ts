@@ -151,3 +151,19 @@ export async function sendMessage(
   });
   if (error) throw error;
 }
+
+export async function updateProfileVerified(address: string, verified: boolean) {
+  const { error } = await supabase
+    .from("profiles")
+    .update({ is_verified: verified })
+    .eq("address", address.toLowerCase());
+  if (error) throw error;
+}
+
+export async function updateProfileTalent(address: string, talentProfileId: string) {
+  const { error } = await supabase
+    .from("profiles")
+    .update({ talent_profile_id: talentProfileId })
+    .eq("address", address.toLowerCase());
+  if (error) throw error;
+}
