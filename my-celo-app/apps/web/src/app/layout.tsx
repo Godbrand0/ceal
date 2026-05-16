@@ -1,34 +1,26 @@
-import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
-import './globals.css';
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
+import "./globals.css";
+import { WalletProvider } from "@/components/wallet-provider";
 
-import { Navbar } from '@/components/navbar';
-import { WalletProvider } from "@/components/wallet-provider"
-
-const inter = Inter({ subsets: ['latin'] });
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: 'my-celo-app',
-  description: 'A new Celo blockchain project',
+  title: "CEAL — On-Chain Dating",
+  description: "Where every match is minted and every date has stakes.",
+  manifest: "/manifest.json",
+  themeColor: "#FF385C",
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className={inter.className}>
-        {/* Navbar is included on all pages */}
-        <div className="relative flex min-h-screen flex-col">
-          <WalletProvider>
-            <Navbar />
-            <main className="flex-1">
-              {children}
-            </main>
-          </WalletProvider>
-        </div>
+      <body className={`${inter.className} bg-gray-950 text-white`}>
+        <WalletProvider>
+          <div className="relative mx-auto min-h-screen max-w-[430px] flex flex-col bg-gray-950">
+            {children}
+          </div>
+        </WalletProvider>
       </body>
     </html>
   );
