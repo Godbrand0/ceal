@@ -4,7 +4,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useAccount } from "wagmi";
 import { ArrowLeft, Gift, Lock, Send, Loader2 } from "lucide-react";
 import { useMatchData } from "@/hooks/useMatches";
-import { getProfile, getMessages, sendMessage, type DbProfile, type DbMessage } from "@/lib/supabase";
+import { getProfile, getMessages, sendMessage, subscribeToMessages, type DbProfile, type DbMessage } from "@/lib/supabase";
 import { ipfsToHttp } from "@/lib/ipfs";
 import { truncateAddress } from "@/lib/app-utils";
 import { GiftModal } from "@/components/GiftModal";
@@ -36,13 +36,15 @@ export default function MatchChatPage() {
     getProfile(other).then(setOtherProfile);
   }, [match, address]);
 
-  // Load & poll messages
+  // Load messages then subscribe to realtime inserts
   useEffect(() => {
     if (!params.matchId) return;
-    const load = () => getMessages(params.matchId).then(setMessages);
-    load();
-    const interval = setInterval(load, 3000);
-    return () => clearInterval(interval);
+    getMessages(params.matchId).then(setMessages);
+
+    const channel = subscribeToMessages(params.matchId, (msg) =>
+      setMessages((prev) => [...prev, msg])
+    );
+    return () => { channel.unsubscribe(); };
   }, [params.matchId]);
 
   // Scroll to bottom on new messages

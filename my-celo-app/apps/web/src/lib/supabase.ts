@@ -123,6 +123,20 @@ export async function getMessages(matchId: string): Promise<DbMessage[]> {
   return data ?? [];
 }
 
+export function subscribeToMessages(
+  matchId: string,
+  onInsert: (msg: DbMessage) => void
+) {
+  return supabase
+    .channel(`messages:${matchId}`)
+    .on(
+      "postgres_changes",
+      { event: "INSERT", schema: "public", table: "messages", filter: `match_id=eq.${matchId}` },
+      (payload) => onInsert(payload.new as DbMessage)
+    )
+    .subscribe();
+}
+
 export async function sendMessage(
   matchId: string,
   sender: string,
