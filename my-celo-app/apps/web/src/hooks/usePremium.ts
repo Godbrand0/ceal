@@ -1,17 +1,20 @@
 "use client";
-import { useWriteContract, useReadContract, useAccount } from "wagmi";
+import { useWriteContract, useReadContract, useAccount, useSwitchChain } from "wagmi";
+import { celoAlfajores } from "wagmi/chains";
 import { type Address } from "viem";
 import { CONTRACT_ADDRESSES, ABIS, ERC20_ABI } from "@/lib/contracts";
 
 export function usePremium() {
-  const { address } = useAccount();
+  const { address, chain } = useAccount();
   const { writeContractAsync, isPending } = useWriteContract();
+  const { switchChainAsync } = useSwitchChain();
 
   const { data: boostExpiresAt, refetch } = useReadContract({
     address: CONTRACT_ADDRESSES.premiumFeatures,
     abi: ABIS.premiumFeatures,
     functionName: "isBoosted",
     args: [address!],
+    chainId: celoAlfajores.id,
     query: { enabled: !!address },
   });
 
@@ -19,74 +22,93 @@ export function usePremium() {
     address: CONTRACT_ADDRESSES.premiumFeatures,
     abi: ABIS.premiumFeatures,
     functionName: "boostPrice",
+    chainId: celoAlfajores.id,
   });
 
   const { data: superLikePrice } = useReadContract({
     address: CONTRACT_ADDRESSES.premiumFeatures,
     abi: ABIS.premiumFeatures,
     functionName: "superLikePrice",
+    chainId: celoAlfajores.id,
   });
 
   const { data: swipeUnlockPrice } = useReadContract({
     address: CONTRACT_ADDRESSES.premiumFeatures,
     abi: ABIS.premiumFeatures,
     functionName: "swipeUnlockPrice",
+    chainId: celoAlfajores.id,
   });
 
+  const ensureChain = async () => {
+    if (chain?.id !== celoAlfajores.id) {
+      await switchChainAsync({ chainId: celoAlfajores.id });
+    }
+  };
+
   const approveAndCall = async (price: bigint, fn: () => Promise<`0x${string}`>) => {
-    const { data: allowance } = {} as any; // read inline
+    await ensureChain();
     await writeContractAsync({
       address: CONTRACT_ADDRESSES.cUSD,
       abi: ERC20_ABI,
       functionName: "approve",
       args: [CONTRACT_ADDRESSES.premiumFeatures, price],
+      chainId: celoAlfajores.id,
     });
     return fn();
   };
 
   const boost = async () => {
     if (!boostPrice) return;
+    await ensureChain();
     await writeContractAsync({
       address: CONTRACT_ADDRESSES.cUSD,
       abi: ERC20_ABI,
       functionName: "approve",
       args: [CONTRACT_ADDRESSES.premiumFeatures, boostPrice as bigint],
+      chainId: celoAlfajores.id,
     });
     return writeContractAsync({
       address: CONTRACT_ADDRESSES.premiumFeatures,
       abi: ABIS.premiumFeatures,
       functionName: "boostProfile",
+      chainId: celoAlfajores.id,
     });
   };
 
   const superLike = async (target: Address) => {
     if (!superLikePrice) return;
+    await ensureChain();
     await writeContractAsync({
       address: CONTRACT_ADDRESSES.cUSD,
       abi: ERC20_ABI,
       functionName: "approve",
       args: [CONTRACT_ADDRESSES.premiumFeatures, superLikePrice as bigint],
+      chainId: celoAlfajores.id,
     });
     return writeContractAsync({
       address: CONTRACT_ADDRESSES.premiumFeatures,
       abi: ABIS.premiumFeatures,
       functionName: "superLike",
       args: [target],
+      chainId: celoAlfajores.id,
     });
   };
 
   const unlockSwipes = async () => {
     if (!swipeUnlockPrice) return;
+    await ensureChain();
     await writeContractAsync({
       address: CONTRACT_ADDRESSES.cUSD,
       abi: ERC20_ABI,
       functionName: "approve",
       args: [CONTRACT_ADDRESSES.premiumFeatures, swipeUnlockPrice as bigint],
+      chainId: celoAlfajores.id,
     });
     return writeContractAsync({
       address: CONTRACT_ADDRESSES.premiumFeatures,
       abi: ABIS.premiumFeatures,
       functionName: "unlockSwipes",
+      chainId: celoAlfajores.id,
     });
   };
 
