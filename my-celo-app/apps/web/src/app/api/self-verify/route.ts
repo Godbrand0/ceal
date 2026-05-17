@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createPublicClient, createWalletClient, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
-import { celoAlfajores, celo } from "viem/chains";
+import { celoSepolia, celo } from "viem/chains";
 import ProfileNFTAbi from "@/abis/ProfileNFT.json";
 
 // Self Protocol posts here when a proof is verified.
@@ -29,9 +29,9 @@ export async function POST(req: NextRequest) {
     const chainId = parseInt(process.env.NEXT_PUBLIC_CHAIN_ID ?? "11142220");
     const rpcUrl  = process.env.CELO_RPC_URL ?? (chainId === 42220
       ? "https://forno.celo.org"
-      : "https://alfajores-forno.celo-testnet.org");
+      : "https://sepolia-forno.celo-testnet.org");
 
-    const chain   = chainId === 42220 ? celo : celoAlfajores;
+    const chain   = chainId === 42220 ? celo : celoSepolia;
     const account = privateKeyToAccount(privateKey as `0x${string}`);
 
     const wallet = createWalletClient({ account, chain, transport: http(rpcUrl) });

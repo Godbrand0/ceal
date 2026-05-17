@@ -1,6 +1,6 @@
 "use client";
 import { useWriteContract, useReadContract, useAccount, useSwitchChain } from "wagmi";
-import { celoAlfajores } from "wagmi/chains";
+import { celoSepolia } from "wagmi/chains";
 import { parseEther, type Address } from "viem";
 import { CONTRACT_ADDRESSES, ABIS, ERC20_ABI } from "@/lib/contracts";
 import type { PledgeData } from "@/lib/types";
@@ -15,7 +15,7 @@ export function useDatePledge(pledgeId?: bigint) {
     abi: ABIS.datePledge,
     functionName: "getPledge",
     args: [pledgeId!],
-    chainId: celoAlfajores.id,
+    chainId: celoSepolia.id,
     query: { enabled: !!pledgeId },
   });
 
@@ -26,13 +26,13 @@ export function useDatePledge(pledgeId?: bigint) {
     abi: ERC20_ABI,
     functionName: "allowance",
     args: [address!, CONTRACT_ADDRESSES.datePledge],
-    chainId: celoAlfajores.id,
+    chainId: celoSepolia.id,
     query: { enabled: !!address },
   });
 
   const ensureChain = async () => {
-    if (chain?.id !== celoAlfajores.id) {
-      await switchChainAsync({ chainId: celoAlfajores.id });
+    if (chain?.id !== celoSepolia.id) {
+      await switchChainAsync({ chainId: celoSepolia.id });
     }
   };
 
@@ -45,7 +45,7 @@ export function useDatePledge(pledgeId?: bigint) {
         abi: ERC20_ABI,
         functionName: "approve",
         args: [CONTRACT_ADDRESSES.datePledge, amount],
-        chainId: celoAlfajores.id,
+        chainId: celoSepolia.id,
       });
     }
   };
@@ -59,7 +59,7 @@ export function useDatePledge(pledgeId?: bigint) {
       abi: ABIS.datePledge,
       functionName: "propose",
       args: [matchId, amount, scheduledAt],
-      chainId: celoAlfajores.id,
+      chainId: celoSepolia.id,
     });
   };
 
@@ -70,7 +70,7 @@ export function useDatePledge(pledgeId?: bigint) {
       abi: ABIS.datePledge,
       functionName: "accept",
       args: [id],
-      chainId: celoAlfajores.id,
+      chainId: celoSepolia.id,
     });
   };
 
@@ -83,7 +83,7 @@ export function useDatePledge(pledgeId?: bigint) {
       abi: ABIS.datePledge,
       functionName: "lock",
       args: [id],
-      chainId: celoAlfajores.id,
+      chainId: celoSepolia.id,
     });
   };
 
@@ -94,7 +94,7 @@ export function useDatePledge(pledgeId?: bigint) {
       abi: ABIS.datePledge,
       functionName: "confirm",
       args: [id],
-      chainId: celoAlfajores.id,
+      chainId: celoSepolia.id,
     });
   };
 
@@ -105,7 +105,7 @@ export function useDatePledge(pledgeId?: bigint) {
       abi: ABIS.datePledge,
       functionName: "claimGhost",
       args: [id],
-      chainId: celoAlfajores.id,
+      chainId: celoSepolia.id,
     });
   };
 
@@ -116,7 +116,7 @@ export function useDatePledge(pledgeId?: bigint) {
       abi: ABIS.datePledge,
       functionName: "cancel",
       args: [id],
-      chainId: celoAlfajores.id,
+      chainId: celoSepolia.id,
     });
   };
 

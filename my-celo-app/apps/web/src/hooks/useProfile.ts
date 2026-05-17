@@ -1,6 +1,6 @@
 "use client";
 import { useReadContract, useWriteContract, useAccount, useSwitchChain } from "wagmi";
-import { celoAlfajores } from "wagmi/chains";
+import { celoSepolia } from "wagmi/chains";
 import { CONTRACT_ADDRESSES, ABIS } from "@/lib/contracts";
 
 export function useProfile(address?: `0x${string}`) {
@@ -12,7 +12,7 @@ export function useProfile(address?: `0x${string}`) {
     abi: ABIS.profileNFT,
     functionName: "profileOf",
     args: [target!],
-    chainId: celoAlfajores.id,
+    chainId: celoSepolia.id,
     query: { enabled: !!target },
   });
 
@@ -23,7 +23,7 @@ export function useProfile(address?: `0x${string}`) {
     abi: ABIS.profileNFT,
     functionName: "metadataURI",
     args: [tid!],
-    chainId: celoAlfajores.id,
+    chainId: celoSepolia.id,
     query: { enabled: !!tid && tid > 0n },
   });
 
@@ -32,7 +32,7 @@ export function useProfile(address?: `0x${string}`) {
     abi: ABIS.profileNFT,
     functionName: "isVerified",
     args: [target!],
-    chainId: celoAlfajores.id,
+    chainId: celoSepolia.id,
     query: { enabled: !!target },
   });
 
@@ -55,15 +55,15 @@ export function useMintProfile() {
   const { chain } = useAccount();
 
   const mint = async (ipfsURI: string) => {
-    if (chain?.id !== celoAlfajores.id) {
-      await switchChainAsync({ chainId: celoAlfajores.id });
+    if (chain?.id !== celoSepolia.id) {
+      await switchChainAsync({ chainId: celoSepolia.id });
     }
     return writeContractAsync({
       address: CONTRACT_ADDRESSES.profileNFT,
       abi: ABIS.profileNFT,
       functionName: "mint",
       args: [ipfsURI],
-      chainId: celoAlfajores.id,
+      chainId: celoSepolia.id,
     });
   };
 
@@ -76,15 +76,15 @@ export function useUpdateMetadata() {
   const { chain } = useAccount();
 
   const update = async (newURI: string) => {
-    if (chain?.id !== celoAlfajores.id) {
-      await switchChainAsync({ chainId: celoAlfajores.id });
+    if (chain?.id !== celoSepolia.id) {
+      await switchChainAsync({ chainId: celoSepolia.id });
     }
     return writeContractAsync({
       address: CONTRACT_ADDRESSES.profileNFT,
       abi: ABIS.profileNFT,
       functionName: "updateMetadata",
       args: [newURI],
-      chainId: celoAlfajores.id,
+      chainId: celoSepolia.id,
     });
   };
 

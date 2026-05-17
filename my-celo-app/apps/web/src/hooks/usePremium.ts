@@ -1,6 +1,6 @@
 "use client";
 import { useWriteContract, useReadContract, useAccount, useSwitchChain } from "wagmi";
-import { celoAlfajores } from "wagmi/chains";
+import { celoSepolia } from "wagmi/chains";
 import { type Address } from "viem";
 import { CONTRACT_ADDRESSES, ABIS, ERC20_ABI } from "@/lib/contracts";
 
@@ -14,7 +14,7 @@ export function usePremium() {
     abi: ABIS.premiumFeatures,
     functionName: "isBoosted",
     args: [address!],
-    chainId: celoAlfajores.id,
+    chainId: celoSepolia.id,
     query: { enabled: !!address },
   });
 
@@ -22,26 +22,26 @@ export function usePremium() {
     address: CONTRACT_ADDRESSES.premiumFeatures,
     abi: ABIS.premiumFeatures,
     functionName: "boostPrice",
-    chainId: celoAlfajores.id,
+    chainId: celoSepolia.id,
   });
 
   const { data: superLikePrice } = useReadContract({
     address: CONTRACT_ADDRESSES.premiumFeatures,
     abi: ABIS.premiumFeatures,
     functionName: "superLikePrice",
-    chainId: celoAlfajores.id,
+    chainId: celoSepolia.id,
   });
 
   const { data: swipeUnlockPrice } = useReadContract({
     address: CONTRACT_ADDRESSES.premiumFeatures,
     abi: ABIS.premiumFeatures,
     functionName: "swipeUnlockPrice",
-    chainId: celoAlfajores.id,
+    chainId: celoSepolia.id,
   });
 
   const ensureChain = async () => {
-    if (chain?.id !== celoAlfajores.id) {
-      await switchChainAsync({ chainId: celoAlfajores.id });
+    if (chain?.id !== celoSepolia.id) {
+      await switchChainAsync({ chainId: celoSepolia.id });
     }
   };
 
@@ -52,7 +52,7 @@ export function usePremium() {
       abi: ERC20_ABI,
       functionName: "approve",
       args: [CONTRACT_ADDRESSES.premiumFeatures, price],
-      chainId: celoAlfajores.id,
+      chainId: celoSepolia.id,
     });
     return fn();
   };
@@ -65,13 +65,13 @@ export function usePremium() {
       abi: ERC20_ABI,
       functionName: "approve",
       args: [CONTRACT_ADDRESSES.premiumFeatures, boostPrice as bigint],
-      chainId: celoAlfajores.id,
+      chainId: celoSepolia.id,
     });
     return writeContractAsync({
       address: CONTRACT_ADDRESSES.premiumFeatures,
       abi: ABIS.premiumFeatures,
       functionName: "boostProfile",
-      chainId: celoAlfajores.id,
+      chainId: celoSepolia.id,
     });
   };
 
@@ -83,14 +83,14 @@ export function usePremium() {
       abi: ERC20_ABI,
       functionName: "approve",
       args: [CONTRACT_ADDRESSES.premiumFeatures, superLikePrice as bigint],
-      chainId: celoAlfajores.id,
+      chainId: celoSepolia.id,
     });
     return writeContractAsync({
       address: CONTRACT_ADDRESSES.premiumFeatures,
       abi: ABIS.premiumFeatures,
       functionName: "superLike",
       args: [target],
-      chainId: celoAlfajores.id,
+      chainId: celoSepolia.id,
     });
   };
 
@@ -102,13 +102,13 @@ export function usePremium() {
       abi: ERC20_ABI,
       functionName: "approve",
       args: [CONTRACT_ADDRESSES.premiumFeatures, swipeUnlockPrice as bigint],
-      chainId: celoAlfajores.id,
+      chainId: celoSepolia.id,
     });
     return writeContractAsync({
       address: CONTRACT_ADDRESSES.premiumFeatures,
       abi: ABIS.premiumFeatures,
       functionName: "unlockSwipes",
-      chainId: celoAlfajores.id,
+      chainId: celoSepolia.id,
     });
   };
 
