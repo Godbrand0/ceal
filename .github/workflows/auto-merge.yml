@@ -1,0 +1,65 @@
+name: Auto Merge Pull Requests
+
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  auto-merge:
+    name: Check and Merge
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    steps:
+      - name: Wait for mergeable status and merge
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+        run: |
+          echo "Processing PR #$PR_NUMBER ($PR_URL)..."
+          
+          # Initialize variables
+          mergeable="null"
+          state=""
+          
+          # Wait up to 60 seconds (12 attempts * 5s) for GitHub to calculate mergeability
+          for i in {1..12}; do
+            echo "Checking mergeability (Attempt $i/12)..."
+            pr_data=$(gh api repos/${{ github.repository }}/pulls/$PR_NUMBER)
+            mergeable=$(echo "$pr_data" | jq -r '.mergeable')
+            state=$(echo "$pr_data" | jq -r '.mergeable_state')
+            
+            echo "Current state - mergeable: $mergeable, mergeable_state: $state"
+            
+            if [ "$mergeable" != "null" ]; then
+              break
+            fi
+            
+            sleep 5
+          done
+          
+          if [ "$mergeable" = "true" ]; then
+            echo "SUCCESS: PR #$PR_NUMBER has no conflicts and is mergeable (state: $state)."
+            echo "Attempting to merge PR..."
+            if gh pr merge $PR_NUMBER --merge --admin --delete-branch; then
+              echo "PR #$PR_NUMBER successfully merged."
+            else
+              echo "Standard merge with admin privileges failed. Trying standard merge..."
+              gh pr merge $PR_NUMBER --merge --delete-branch
+            fi
+          elif [ "$mergeable" = "false" ]; then
+            echo "ERROR: PR #$PR_NUMBER has merge conflicts (mergeable: false, state: $state)."
+            echo "Skipping merge."
+            exit 1
+          else
+            echo "ERROR: Could not determine mergeable status after waiting (mergeable: $mergeable, state: $state)."
+            exit 1
+          fi
