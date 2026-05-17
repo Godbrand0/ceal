@@ -6,7 +6,7 @@ export function useProfile(address?: `0x${string}`) {
   const { address: self } = useAccount();
   const target = address ?? self;
 
-  const { data: tokenId, refetch } = useReadContract({
+  const { data: tokenId, refetch, isLoading: isLoadingProfile, isError: isProfileError } = useReadContract({
     address: CONTRACT_ADDRESSES.profileNFT,
     abi: ABIS.profileNFT,
     functionName: "profileOf",
@@ -39,6 +39,8 @@ export function useProfile(address?: `0x${string}`) {
     metadataURI: metadataURI as string | undefined,
     isVerified: isVerified as boolean | undefined,
     hasProfile,
+    isLoadingProfile,
+    isProfileError,
     refetch,
   };
 }
