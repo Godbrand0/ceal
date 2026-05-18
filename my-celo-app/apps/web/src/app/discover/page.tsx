@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useAccount } from "wagmi";
 import { AnimatePresence, motion } from "framer-motion";
 import { Flame, Settings, X, Heart, Star } from "lucide-react";
+import { truncateAddress } from "@/lib/app-utils";
 import { SwipeCard } from "@/components/SwipeCard";
 import { BottomNav } from "@/components/BottomNav";
 import { MatchModal } from "@/components/MatchModal";
@@ -69,9 +70,16 @@ export default function DiscoverPage() {
           <Flame size={24} className="text-rose-400" />
           <span className="text-xl font-bold text-white">CEAL</span>
         </div>
-        <button onClick={() => setShowPremium(true)} className="text-gray-400 hover:text-white transition">
-          <Settings size={22} />
-        </button>
+        <div className="flex items-center gap-3">
+          {address && (
+            <span className="text-xs text-gray-400 bg-gray-800 border border-gray-700 rounded-full px-3 py-1 font-mono">
+              {truncateAddress(address)}
+            </span>
+          )}
+          <button onClick={() => setShowPremium(true)} className="text-gray-400 hover:text-white transition">
+            <Settings size={22} />
+          </button>
+        </div>
       </div>
 
       {/* Swipe area */}
