@@ -73,7 +73,7 @@ export default function OnboardingPage() {
       });
 
       setStep("done");
-      setTimeout(() => router.replace("/discover"), 1800);
+      setTimeout(() => router.push("/discover"), 2000);
     } catch (err: any) {
       setError(err?.message ?? "Something went wrong");
       setStep("form");

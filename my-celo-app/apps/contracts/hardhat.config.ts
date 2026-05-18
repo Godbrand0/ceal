@@ -1,3 +1,4 @@
+import "dotenv/config";
 import type { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox-viem";
 
@@ -18,6 +19,8 @@ const config: HardhatUserConfig = {
       url: "https://forno.celo.org",
       accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
       chainId: 42220,
+      gas: 6_000_000,
+      gasPrice: 5_000_000_000, // 5 gwei — Celo mainnet minimum
     },
     // Celo Sepolia Testnet
     "celo-sepolia": {
