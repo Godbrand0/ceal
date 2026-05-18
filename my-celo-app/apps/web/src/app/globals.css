@@ -78,3 +78,49 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* ── Light mode: remap the app's hardcoded dark grays ── */
+html:not(.dark) {
+  color-scheme: light;
+}
+
+/* Backgrounds */
+html:not(.dark) .bg-gray-950 { background-color: #ffffff !important; }
+html:not(.dark) .bg-gray-900 { background-color: #f8fafc !important; }
+html:not(.dark) .bg-gray-800 { background-color: #f1f5f9 !important; }
+html:not(.dark) .bg-gray-700 { background-color: #e2e8f0 !important; }
+
+/* Borders */
+html:not(.dark) .border-gray-800 { border-color: #e2e8f0 !important; }
+html:not(.dark) .border-gray-700 { border-color: #cbd5e1 !important; }
+html:not(.dark) .border-gray-600 { border-color: #94a3b8 !important; }
+html:not(.dark) .border-rose-500\/20 { border-color: rgb(244 63 94 / 0.3) !important; }
+
+/* Text */
+html:not(.dark) .text-white       { color: #0f172a !important; }
+html:not(.dark) .text-gray-300    { color: #334155 !important; }
+html:not(.dark) .text-gray-400    { color: #475569 !important; }
+html:not(.dark) .text-gray-500    { color: #64748b !important; }
+html:not(.dark) .text-gray-600    { color: #475569 !important; }
+html:not(.dark) .text-gray-700    { color: #334155 !important; }
+
+/* Placeholder text */
+html:not(.dark) .placeholder-gray-500::placeholder { color: #94a3b8 !important; }
+html:not(.dark) .placeholder-gray-600::placeholder { color: #94a3b8 !important; }
+
+/* Input / form backgrounds */
+html:not(.dark) input.bg-gray-800,
+html:not(.dark) textarea.bg-gray-800 {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+}
+
+/* Bottom nav */
+html:not(.dark) .bg-gray-900\/95 {
+  background-color: rgba(248, 250, 252, 0.97) !important;
+}
+
+/* Gradient overlays used in cards */
+html:not(.dark) .from-rose-900\/30 { --tw-gradient-from: rgb(255 228 230 / 0.5) !important; }
+html:not(.dark) .from-rose-900\/60 { --tw-gradient-from: rgb(255 228 230 / 0.7) !important; }
