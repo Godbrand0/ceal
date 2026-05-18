@@ -1,7 +1,9 @@
 "use client";
+import { useEffect, useState } from "react";
 import { motion, useMotionValue, useTransform, type PanInfo } from "framer-motion";
-import { BadgeCheck, Zap } from "lucide-react";
+import { BadgeCheck, Zap, Github, Shield } from "lucide-react";
 import { ipfsToHttp } from "@/lib/ipfs";
+import { getReputationScore } from "@/lib/supabase";
 import type { DbProfile } from "@/lib/supabase";
 
 interface SwipeCardProps {
@@ -12,15 +14,25 @@ interface SwipeCardProps {
   isBoosted?:   boolean;
 }
 
+function useReputation(address: string) {
+  const [badge, setBadge] = useState<"Trusted" | "Good" | "New" | null>(null);
+  useEffect(() => {
+    getReputationScore(address).then((r) => setBadge(r.badge));
+  }, [address]);
+  return badge;
+}
+
 export function SwipeCard({ profile, onSwipeLeft, onSwipeRight, onSuperLike, isBoosted }: SwipeCardProps) {
   const x        = useMotionValue(0);
   const y        = useMotionValue(0);
   const rotate   = useTransform(x, [-200, 200], [-20, 20]);
   const opacity  = useTransform(x, [-250, -100, 0, 100, 250], [0, 1, 1, 1, 0]);
 
-  const likeOpacity = useTransform(x, [20, 120], [0, 1]);
-  const nopeOpacity = useTransform(x, [-120, -20], [1, 0]);
+  const likeOpacity  = useTransform(x, [20, 120], [0, 1]);
+  const nopeOpacity  = useTransform(x, [-120, -20], [1, 0]);
   const superOpacity = useTransform(y, [-120, -20], [1, 0]);
+
+  const reputationBadge = useReputation(profile.address);
 
   function handleDragEnd(_: any, info: PanInfo) {
     if (info.offset.x > 100)      onSwipeRight();
@@ -91,6 +103,37 @@ export function SwipeCard({ profile, onSwipeLeft, onSwipeRight, onSuperLike, isB
           </div>
         )}
 
+        {/* Trust badges — top left column */}
+        <div className="absolute top-4 left-4 flex flex-col gap-1.5">
+          {profile.is_verified && (
+            <div className="flex items-center gap-1 bg-blue-500/20 backdrop-blur px-2 py-1
+                            rounded-full text-blue-300 text-xs font-medium">
+              <BadgeCheck size={11} />
+              Age Verified
+            </div>
+          )}
+          {profile.talent_profile_id && (
+            <div className="flex items-center gap-1 bg-amber-500/20 backdrop-blur px-2 py-1
+                            rounded-full text-amber-300 text-xs font-medium">
+              ⚡ Talent Protocol
+            </div>
+          )}
+          {profile.github_username && (
+            <div className="flex items-center gap-1 bg-white/10 backdrop-blur px-2 py-1
+                            rounded-full text-white text-xs font-medium">
+              <Github size={11} />
+              GitHub
+            </div>
+          )}
+          {reputationBadge === "Trusted" && (
+            <div className="flex items-center gap-1 bg-emerald-500/20 backdrop-blur px-2 py-1
+                            rounded-full text-emerald-300 text-xs font-medium">
+              <Shield size={11} />
+              Trusted Dater
+            </div>
+          )}
+        </div>
+
         {/* Profile info */}
         <div className="absolute bottom-0 left-0 right-0 p-5">
           <div className="flex items-end justify-between">
@@ -99,9 +142,6 @@ export function SwipeCard({ profile, onSwipeLeft, onSwipeRight, onSuperLike, isB
                 <h2 className="text-2xl font-bold text-white">
                   {profile.name}, {profile.age}
                 </h2>
-                {profile.is_verified && (
-                  <BadgeCheck size={22} className="text-blue-400" />
-                )}
               </div>
               <p className="text-gray-300 text-sm mt-0.5">{profile.city}</p>
               {profile.bio && (
