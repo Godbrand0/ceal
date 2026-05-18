@@ -167,3 +167,27 @@ export async function updateProfileTalent(address: string, talentProfileId: stri
     .eq("address", address.toLowerCase());
   if (error) throw error;
 }
+
+export async function getMutualMatchCount(address: string): Promise<number> {
+  const addr = address.toLowerCase();
+  // addresses that the user liked
+  const { data: liked } = await supabase
+    .from("swipes")
+    .select("swiped")
+    .eq("swiper", addr)
+    .eq("direction", "like");
+
+  if (!liked?.length) return 0;
+
+  const likedAddresses = liked.map((r) => r.swiped);
+
+  // of those, how many liked the user back
+  const { count } = await supabase
+    .from("swipes")
+    .select("id", { count: "exact", head: true })
+    .eq("direction", "like")
+    .eq("swiped", addr)
+    .in("swiper", likedAddresses);
+
+  return count ?? 0;
+}

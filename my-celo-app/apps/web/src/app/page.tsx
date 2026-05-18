@@ -116,6 +116,7 @@ export default function LandingPage() {
               Connect Wallet
             </button>
           )}
+
           <p className="text-gray-600 text-xs">
             Works with MetaMask · MiniPay · any injected wallet
           </p>
@@ -143,21 +144,16 @@ export default function LandingPage() {
           How it works
         </p>
         <div className="relative">
-          {/* vertical line */}
           <div className="absolute left-5 top-0 bottom-0 w-px bg-gray-800" />
-
           <div className="space-y-6">
             {steps.map(({ icon, title, desc }, i) => (
               <div key={title} className="flex gap-4 relative">
-                {/* step bubble */}
                 <div className="shrink-0 w-10 h-10 rounded-full bg-gray-900 border border-gray-700
                                 flex items-center justify-center z-10">
                   {icon}
                 </div>
                 <div className="pt-1 pb-2">
-                  <div className="flex items-center gap-2 mb-0.5">
-                    <span className="text-gray-600 text-xs font-medium">Step {i + 1}</span>
-                  </div>
+                  <span className="text-gray-600 text-xs font-medium">Step {i + 1}</span>
                   <p className="text-white font-semibold text-sm">{title}</p>
                   <p className="text-gray-500 text-xs mt-0.5 leading-relaxed">{desc}</p>
                 </div>

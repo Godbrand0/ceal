@@ -9,6 +9,7 @@ import { WagmiProvider, createConfig, http, useConnect } from "wagmi";
 import { celo, celoSepolia } from "wagmi/chains";
 import { ConnectButton } from "./connect-button";
 
+
 const connectors = connectorsForWallets(
   [
     {
@@ -17,17 +18,16 @@ const connectors = connectorsForWallets(
     },
   ],
   {
-    appName: "my-celo-app",
+    appName: "CEAL",
     projectId: process.env.NEXT_PUBLIC_WC_PROJECT_ID!,
   }
 );
 
 const wagmiConfig = createConfig({
-  chains: [celo, celoSepolia],
+  chains: [celoSepolia],
   connectors,
   transports: {
-    [celo.id]: http(),
-    [celoSepolia.id]: http(),
+    [celoSepolia.id]: http("https://sepolia-forno.celo-testnet.org"),
   },
   ssr: true,
 });
@@ -58,7 +58,7 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
   return (
     <WagmiProvider config={wagmiConfig}>
       <QueryClientProvider client={queryClient}>
-        <RainbowKitProvider>
+        <RainbowKitProvider initialChain={celoSepolia}>
           <WalletProviderInner>{children}</WalletProviderInner>
         </RainbowKitProvider>
       </QueryClientProvider>
