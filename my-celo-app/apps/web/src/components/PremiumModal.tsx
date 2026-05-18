@@ -1,8 +1,9 @@
 "use client";
 import { motion } from "framer-motion";
-import { X, Zap, Star, RefreshCw, Loader2 } from "lucide-react";
+import { X, Zap, Star, RefreshCw, Loader2, Sun, Moon } from "lucide-react";
 import { formatEther } from "viem";
 import { usePremium } from "@/hooks/usePremium";
+import { useTheme } from "@/lib/theme";
 import type { Address } from "viem";
 
 interface PremiumModalProps {
@@ -13,6 +14,7 @@ interface PremiumModalProps {
 export function PremiumModal({ targetAddress, onClose }: PremiumModalProps) {
   const { isBoosted, boostPrice, superLikePrice, swipeUnlockPrice, boost, superLike, unlockSwipes, isPending } =
     usePremium();
+  const { theme, toggleTheme } = useTheme();
 
   const features = [
     {
@@ -88,6 +90,39 @@ export function PremiumModal({ targetAddress, onClose }: PremiumModalProps) {
               </button>
             </div>
           ))}
+        </div>
+
+        {/* Divider */}
+        <div className="border-t border-gray-800 my-4" />
+
+        {/* Settings */}
+        <p className="text-gray-600 text-xs uppercase tracking-widest mb-3">Settings</p>
+        <div className="flex items-center justify-between bg-gray-800 rounded-2xl px-4 py-4">
+          <div className="flex items-center gap-3">
+            {theme === "dark"
+              ? <Moon size={20} className="text-blue-400" />
+              : <Sun size={20} className="text-amber-400" />}
+            <div>
+              <p className="text-white font-medium text-sm">
+                {theme === "dark" ? "Dark mode" : "Light mode"}
+              </p>
+              <p className="text-gray-500 text-xs">Tap to switch appearance</p>
+            </div>
+          </div>
+          {/* Toggle pill */}
+          <button
+            onClick={toggleTheme}
+            className={`relative w-12 h-6 rounded-full transition-colors duration-300 ${
+              theme === "dark" ? "bg-blue-500" : "bg-amber-400"
+            }`}
+          >
+            <span
+              className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow
+                          transition-transform duration-300 ${
+                            theme === "dark" ? "translate-x-6" : "translate-x-0"
+                          }`}
+            />
+          </button>
         </div>
 
         <p className="text-center text-xs text-gray-600 mt-5">
