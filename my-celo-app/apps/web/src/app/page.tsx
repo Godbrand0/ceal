@@ -6,54 +6,54 @@ import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { useProfile } from "@/hooks/useProfile";
 import {
   Flame, ShieldCheck, Gift, Calendar, Loader2,
-  Wallet, UserCircle2, Sparkles, Heart,
+  Smartphone, UserCircle2, Sparkles, Heart,
 } from "lucide-react";
 
 const stats = [
-  { value: "100+", label: "Talent Protocol devs" },
-  { value: "30+",  label: "Matches found" },
-  { value: "cUSD", label: "Gifts sent on-chain" },
+  { value: "100+", label: "Verified developers joined" },
+  { value: "30+",  label: "Couples matched" },
+  { value: "500+", label: "Gifts sent" },
   { value: "0",    label: "Fake profiles" },
 ];
 
 const steps = [
   {
-    icon: <Wallet size={20} className="text-rose-400" />,
-    title: "Connect your wallet",
-    desc: "Use MetaMask, MiniPay, or any injected wallet on Celo.",
+    icon: <Smartphone size={20} className="text-rose-400" />,
+    title: "Sign in with your account",
+    desc: "Connect with your existing crypto wallet — it takes just a tap, no password needed.",
   },
   {
     icon: <UserCircle2 size={20} className="text-amber-400" />,
-    title: "Mint your profile NFT",
-    desc: "Your identity is minted on-chain — soulbound, verified, yours.",
+    title: "Create your profile",
+    desc: "Add your name, photo, and a short bio. Your profile is secured and uniquely yours.",
   },
   {
     icon: <Sparkles size={20} className="text-blue-400" />,
-    title: "Verify with Self Protocol",
-    desc: "Add a ZK age proof to get your verified badge and stand out.",
+    title: "Get verified",
+    desc: "Prove you're a real person and 18+ — no documents stored, just a quick check.",
   },
   {
     icon: <Heart size={20} className="text-rose-400" />,
-    title: "Swipe, match & gift",
-    desc: "Send cUSD gifts to express real interest. Ghost a date and lose your deposit.",
+    title: "Swipe, match & connect",
+    desc: "Like profiles, match with people, and send a small gift to show you're serious.",
   },
 ];
 
 const features = [
   {
     icon: <ShieldCheck size={20} className="text-blue-400" />,
-    title: "Verified identity",
-    desc: "ZK age proofs via Self Protocol — no fake profiles",
+    title: "Real people only",
+    desc: "Age verified by Self Protocol — no bots, no fake accounts, no catfishing.",
   },
   {
     icon: <Gift size={20} className="text-rose-400" />,
-    title: "Meaningful gifts",
-    desc: "Send cUSD gifts to express real interest",
+    title: "Show genuine interest",
+    desc: "Send a small digital gift when you like someone — it means a lot more than a swipe.",
   },
   {
     icon: <Calendar size={20} className="text-amber-400" />,
-    title: "Date Pledge",
-    desc: "Lock cUSD before a date — ghost and lose it",
+    title: "Serious about dates",
+    desc: "Lock in a small deposit before a date. Show up or lose it — no more ghosting.",
   },
 ];
 
@@ -63,7 +63,6 @@ export default function LandingPage() {
   const { openConnectModal } = useConnectModal();
   const { hasProfile, isLoadingProfile, isProfileError } = useProfile();
 
-  // Auto-redirect once wallet is connected and profile check completes
   useEffect(() => {
     if (!isConnected || !address || isLoadingProfile) return;
 
@@ -91,11 +90,11 @@ export default function LandingPage() {
 
         <h1 className="text-5xl font-black text-white tracking-tight mb-2">CEAL</h1>
         <p className="text-rose-400 font-medium text-xs uppercase tracking-widest mb-4">
-          On-chain dating on Celo
+          Dating that actually means something
         </p>
         <p className="text-gray-400 text-sm max-w-xs leading-relaxed">
-          Every match is minted. Every gift means something.
-          Ghost a date and lose your deposit.
+          Every profile is real. Every gift is genuine.
+          Stand someone up and you lose your deposit — no more ghosting.
         </p>
 
         {/* CTA */}
@@ -104,7 +103,7 @@ export default function LandingPage() {
             <div className="flex items-center justify-center gap-3 py-4">
               <Loader2 size={20} className="animate-spin text-rose-400" />
               <span className="text-gray-400 text-sm">
-                {hasProfile ? "Welcome back…" : "Checking profile…"}
+                {hasProfile ? "Welcome back…" : "Setting things up…"}
               </span>
             </div>
           ) : (
@@ -113,12 +112,12 @@ export default function LandingPage() {
               className="w-full py-4 rounded-2xl bg-rose-500 hover:bg-rose-600 active:scale-95
                          font-bold text-white text-base transition-all shadow-lg shadow-rose-500/25"
             >
-              Connect Wallet
+              Get Started — It's Free
             </button>
           )}
 
           <p className="text-gray-600 text-xs">
-            Works with MetaMask · MiniPay · any injected wallet
+            Sign in with MetaMask, MiniPay, or any crypto wallet
           </p>
         </div>
       </div>
@@ -185,7 +184,7 @@ export default function LandingPage() {
       </div>
 
       <p className="pb-10 text-center text-gray-700 text-xs">
-        Built on Celo · Powered by cUSD
+        Safe · Verified · Free to join
       </p>
     </div>
   );
