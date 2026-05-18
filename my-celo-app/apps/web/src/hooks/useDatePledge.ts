@@ -1,7 +1,7 @@
 "use client";
 import { useWriteContract, useReadContract, useAccount, useSwitchChain } from "wagmi";
 import { celoSepolia } from "wagmi/chains";
-import { parseEther, type Address } from "viem";
+import { parseEther } from "viem";
 import { CONTRACT_ADDRESSES, ABIS, ERC20_ABI } from "@/lib/contracts";
 import type { PledgeData } from "@/lib/types";
 
@@ -98,12 +98,34 @@ export function useDatePledge(pledgeId?: bigint) {
     });
   };
 
-  const claimGhost = async (id: bigint) => {
+  const unstake = async (id: bigint) => {
     await ensureChain();
     return writeContractAsync({
       address: CONTRACT_ADDRESSES.datePledge,
       abi: ABIS.datePledge,
-      functionName: "claimGhost",
+      functionName: "unstake",
+      args: [id],
+      chainId: celoSepolia.id,
+    });
+  };
+
+  const signMutualCancel = async (id: bigint) => {
+    await ensureChain();
+    return writeContractAsync({
+      address: CONTRACT_ADDRESSES.datePledge,
+      abi: ABIS.datePledge,
+      functionName: "signMutualCancel",
+      args: [id],
+      chainId: celoSepolia.id,
+    });
+  };
+
+  const resolveTimeout = async (id: bigint) => {
+    await ensureChain();
+    return writeContractAsync({
+      address: CONTRACT_ADDRESSES.datePledge,
+      abi: ABIS.datePledge,
+      functionName: "resolveTimeout",
       args: [id],
       chainId: celoSepolia.id,
     });
@@ -120,5 +142,5 @@ export function useDatePledge(pledgeId?: bigint) {
     });
   };
 
-  return { pledge, propose, accept, lock, confirm, claimGhost, cancel, isPending, refetch };
+  return { pledge, propose, accept, lock, confirm, unstake, signMutualCancel, resolveTimeout, cancel, isPending, refetch };
 }

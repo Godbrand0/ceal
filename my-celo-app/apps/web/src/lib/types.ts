@@ -11,15 +11,18 @@ export interface MatchData {
 }
 
 export interface PledgeData {
-  matchId:           bigint;
-  proposer:          string;
-  acceptor:          string;
-  amountEach:        bigint;
-  scheduledAt:       bigint;
-  acceptedAt:        bigint;
-  proposerLocked:    boolean;
-  acceptorLocked:    boolean;
-  proposerConfirmed: boolean;
-  acceptorConfirmed: boolean;
-  status:            number;
+  matchId:               bigint;
+  proposer:              string;
+  acceptor:              string;
+  amountEach:            bigint;
+  scheduledAt:           bigint;
+  acceptedAt:            bigint;
+  proposerLocked:        boolean;
+  acceptorLocked:        boolean;
+  proposerConfirmed:     boolean;
+  acceptorConfirmed:     boolean;
+  proposerCancelSigned:  boolean;
+  acceptorCancelSigned:  boolean;
+  cancelSignedAt:        bigint;
+  status:                number;
 }
