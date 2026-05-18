@@ -17,6 +17,7 @@ export interface DbProfile {
   token_id: number | null;
   is_verified: boolean;
   talent_profile_id: string | null;
+  github_username: string | null;
   created_at: string;
 }
 
@@ -51,6 +52,18 @@ export interface DbMatch {
   last_message: string | null;
 }
 
+export interface DbPledgeEvidence {
+  id: string;
+  pledge_id: string;
+  address: string;
+  evidence_type: "confirm_photo" | "cancel_reason";
+  content: string;
+  ai_verified: boolean;
+  ai_confidence: number;
+  ai_notes: string;
+  created_at: string;
+}
+
 // ---------- helpers ----------
 
 export async function getProfile(address: string): Promise<DbProfile | null> {
@@ -67,6 +80,14 @@ export async function upsertProfile(profile: Partial<DbProfile> & { address: str
     ...profile,
     address: profile.address.toLowerCase(),
   });
+  if (error) throw error;
+}
+
+export async function updateProfileGithub(address: string, githubUsername: string) {
+  const { error } = await supabase
+    .from("profiles")
+    .update({ github_username: githubUsername })
+    .eq("address", address.toLowerCase());
   if (error) throw error;
 }
 
@@ -190,4 +211,68 @@ export async function getMutualMatchCount(address: string): Promise<number> {
     .in("swiper", likedAddresses);
 
   return count ?? 0;
+}
+
+export async function savePledgeEvidence({
+  pledgeId,
+  address,
+  evidenceType,
+  content,
+  aiVerified = false,
+  aiConfidence = 0,
+  aiNotes = "",
+}: {
+  pledgeId: string;
+  address: string;
+  evidenceType: "confirm_photo" | "cancel_reason";
+  content: string;
+  aiVerified?: boolean;
+  aiConfidence?: number;
+  aiNotes?: string;
+}) {
+  const { error } = await supabase.from("pledge_evidence").upsert({
+    pledge_id: pledgeId,
+    address: address.toLowerCase(),
+    evidence_type: evidenceType,
+    content,
+    ai_verified: aiVerified,
+    ai_confidence: aiConfidence,
+    ai_notes: aiNotes,
+  });
+  if (error) throw error;
+}
+
+export async function getReputationScore(address: string): Promise<{
+  score: number;
+  confirmedDates: number;
+  cancelledDates: number;
+  badge: "Trusted" | "Good" | "New" | null;
+}> {
+  const addr = address.toLowerCase();
+
+  const { data } = await supabase
+    .from("pledge_evidence")
+    .select("evidence_type, ai_verified")
+    .eq("address", addr);
+
+  if (!data || data.length === 0) {
+    return { score: 0, confirmedDates: 0, cancelledDates: 0, badge: "New" };
+  }
+
+  const confirmedDates = data.filter(
+    (r) => r.evidence_type === "confirm_photo" && r.ai_verified
+  ).length;
+  const cancelledDates = data.filter(
+    (r) => r.evidence_type === "cancel_reason"
+  ).length;
+
+  const total = confirmedDates + cancelledDates;
+  const score = total === 0 ? 0 : Math.round((confirmedDates / total) * 100);
+
+  let badge: "Trusted" | "Good" | "New" | null = null;
+  if (total === 0) badge = "New";
+  else if (score >= 80) badge = "Trusted";
+  else if (score >= 50) badge = "Good";
+
+  return { score, confirmedDates, cancelledDates, badge };
 }
