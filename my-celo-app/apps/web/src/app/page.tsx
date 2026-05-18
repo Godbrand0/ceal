@@ -1,5 +1,5 @@
 "use client";
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAccount } from "wagmi";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
@@ -7,7 +7,9 @@ import { useProfile } from "@/hooks/useProfile";
 import {
   Flame, ShieldCheck, Gift, Calendar, Loader2,
   Smartphone, UserCircle2, Sparkles, Heart,
+  ChevronDown, ChevronUp, HelpCircle, MessageCircle,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 const stats = [
   { value: "100+", label: "Verified developers joined" },
@@ -57,6 +59,69 @@ const features = [
   },
 ];
 
+const faqs = [
+  {
+    q: "What is CEAL?",
+    a: "CEAL is an on-chain dating app built on the Celo blockchain. It combines real identity verification, soulbound profile NFTs, and a stake-based date commitment system to create a dating experience where actions have real consequences.",
+  },
+  {
+    q: "Do I need crypto to use CEAL?",
+    a: "You need a crypto wallet (like MetaMask or MiniPay) to sign in, but you don't need tokens to browse or match. You only need cUSD if you want to send gifts or lock a date pledge.",
+  },
+  {
+    q: "How does the date pledge work?",
+    a: "Before a date, both parties lock a small amount of cUSD in a smart contract. If the date happens and both confirm it with a photo, both get their full deposit back — no fee. If one person cancels before the date, they get a full refund too. If a mutual cancel is requested after the date (for example, one person didn't show), the platform keeps 20% as a no-show fee.",
+  },
+  {
+    q: "What happens if someone ghosts me?",
+    a: "After the date time has passed, if the other party has confirmed but you haven't, you can request a mutual cancel. Both parties must sign. If the other party doesn't respond within 7 days, anyone can trigger a timeout resolution — the funds are split with a 20% platform fee.",
+  },
+  {
+    q: "Can I get a refund if plans change before the date?",
+    a: "Yes — if the date hasn't happened yet, either party can unstake and both get a 100% refund with no penalty.",
+  },
+  {
+    q: "How is my identity verified?",
+    a: "We use Self Protocol for age verification — it generates a zero-knowledge proof that you're 18+ without storing your documents. Your wallet address gets a verified flag stored both on-chain and in your profile.",
+  },
+  {
+    q: "What is a soulbound NFT?",
+    a: "When you create a profile, you're minted a ProfileNFT that is non-transferable (soulbound). It represents your identity on CEAL and can hold your reputation, Talent Protocol score, and verification status.",
+  },
+  {
+    q: "What is the GitHub integration for?",
+    a: "You can optionally link your GitHub username to show your commit activity on your profile and SwipeCard. It's a trust signal — people who actively build software tend to be real humans with real identities.",
+  },
+  {
+    q: "How is the reputation score calculated?",
+    a: "Your date reputation score is based on your confirmed vs. cancelled dates: (confirmed dates ÷ total dates) × 100. Confirmed dates are photo-verified by AI. A score of 80%+ earns you the 'Trusted Dater' badge which shows on your SwipeCard.",
+  },
+];
+
+function FaqItem({ q, a }: { q: string; a: string }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="border border-gray-800 rounded-2xl overflow-hidden">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="w-full flex items-center justify-between px-4 py-4 text-left hover:bg-gray-900/50 transition"
+      >
+        <span className="text-white text-sm font-medium pr-4">{q}</span>
+        {open ? (
+          <ChevronUp size={16} className="text-gray-500 shrink-0" />
+        ) : (
+          <ChevronDown size={16} className="text-gray-500 shrink-0" />
+        )}
+      </button>
+      {open && (
+        <div className="px-4 pb-4">
+          <p className="text-gray-400 text-sm leading-relaxed">{a}</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function LandingPage() {
   const router = useRouter();
   const { address, isConnected } = useAccount();
@@ -65,7 +130,6 @@ export default function LandingPage() {
 
   useEffect(() => {
     if (!isConnected || !address || isLoadingProfile) return;
-
     if (isProfileError || !hasProfile) {
       router.replace("/onboarding");
     } else {
@@ -78,7 +142,7 @@ export default function LandingPage() {
   return (
     <div className="flex flex-col min-h-screen bg-gray-950 overflow-y-auto">
 
-      {/* ── Hero ── */}
+      {/* Hero */}
       <div className="flex flex-col items-center justify-center px-6 pt-20 pb-10 text-center">
         <div className="mb-6 relative">
           <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-rose-500 to-rose-700
@@ -87,7 +151,6 @@ export default function LandingPage() {
           </div>
           <div className="absolute -inset-2 rounded-3xl bg-rose-500/15 blur-xl -z-10" />
         </div>
-
         <h1 className="text-5xl font-black text-white tracking-tight mb-2">CEAL</h1>
         <p className="text-rose-400 font-medium text-xs uppercase tracking-widest mb-4">
           Dating that actually means something
@@ -96,8 +159,6 @@ export default function LandingPage() {
           Every profile is real. Every gift is genuine.
           Stand someone up and you lose your deposit — no more ghosting.
         </p>
-
-        {/* CTA */}
         <div className="mt-10 w-full max-w-xs space-y-3">
           {isChecking ? (
             <div className="flex items-center justify-center gap-3 py-4">
@@ -112,24 +173,20 @@ export default function LandingPage() {
               className="w-full py-4 rounded-2xl bg-rose-500 hover:bg-rose-600 active:scale-95
                          font-bold text-white text-base transition-all shadow-lg shadow-rose-500/25"
             >
-              Get Started — It's Free
+              Get Started — It&apos;s Free
             </button>
           )}
-
           <p className="text-gray-600 text-xs">
             Sign in with MetaMask, MiniPay, or any crypto wallet
           </p>
         </div>
       </div>
 
-      {/* ── Stats ── */}
+      {/* Stats */}
       <div className="px-6 pb-10 max-w-sm mx-auto w-full">
         <div className="grid grid-cols-2 gap-3">
           {stats.map(({ value, label }) => (
-            <div
-              key={label}
-              className="bg-gray-900 border border-gray-800 rounded-2xl px-4 py-5 text-center"
-            >
+            <div key={label} className="bg-gray-900 border border-gray-800 rounded-2xl px-4 py-5 text-center">
               <p className="text-2xl font-black text-rose-400 mb-1">{value}</p>
               <p className="text-gray-500 text-xs leading-snug">{label}</p>
             </div>
@@ -137,11 +194,9 @@ export default function LandingPage() {
         </div>
       </div>
 
-      {/* ── How it works ── */}
+      {/* How it works */}
       <div className="px-6 pb-10 max-w-sm mx-auto w-full">
-        <p className="text-gray-600 text-xs uppercase tracking-widest text-center mb-5">
-          How it works
-        </p>
+        <p className="text-gray-600 text-xs uppercase tracking-widest text-center mb-5">How it works</p>
         <div className="relative">
           <div className="absolute left-5 top-0 bottom-0 w-px bg-gray-800" />
           <div className="space-y-6">
@@ -162,16 +217,12 @@ export default function LandingPage() {
         </div>
       </div>
 
-      {/* ── Why CEAL ── */}
+      {/* Why CEAL */}
       <div className="px-6 pb-16 space-y-3 max-w-sm mx-auto w-full">
-        <p className="text-gray-600 text-xs uppercase tracking-widest text-center mb-5">
-          Why CEAL is different
-        </p>
+        <p className="text-gray-600 text-xs uppercase tracking-widest text-center mb-5">Why CEAL is different</p>
         {features.map(({ icon, title, desc }) => (
-          <div
-            key={title}
-            className="flex items-start gap-4 bg-gray-900 border border-gray-800 rounded-2xl px-4 py-4"
-          >
+          <div key={title}
+            className="flex items-start gap-4 bg-gray-900 border border-gray-800 rounded-2xl px-4 py-4">
             <div className="mt-0.5 shrink-0 w-9 h-9 rounded-xl bg-gray-800 flex items-center justify-center">
               {icon}
             </div>
@@ -183,9 +234,38 @@ export default function LandingPage() {
         ))}
       </div>
 
-      <p className="pb-10 text-center text-gray-700 text-xs">
-        Safe · Verified · Free to join
-      </p>
+      {/* FAQ */}
+      <div className="px-6 pb-10 max-w-sm mx-auto w-full">
+        <div className="flex items-center gap-2 justify-center mb-5">
+          <HelpCircle size={16} className="text-gray-500" />
+          <p className="text-gray-600 text-xs uppercase tracking-widest">Frequently asked questions</p>
+        </div>
+        <div className="space-y-2">
+          {faqs.map((faq) => (
+            <FaqItem key={faq.q} {...faq} />
+          ))}
+        </div>
+      </div>
+
+      {/* Support link */}
+      <div className="px-6 pb-16 max-w-sm mx-auto w-full">
+        <a href="/support"
+          className="flex items-center justify-between w-full bg-gray-900 border border-gray-800
+                     rounded-2xl px-4 py-4 hover:bg-gray-800 transition group">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-rose-500/10 flex items-center justify-center">
+              <MessageCircle size={18} className="text-rose-400" />
+            </div>
+            <div>
+              <p className="text-white text-sm font-medium">Need help?</p>
+              <p className="text-gray-500 text-xs">Contact our support team</p>
+            </div>
+          </div>
+          <span className="text-gray-600 text-xs group-hover:text-gray-400 transition">Support →</span>
+        </a>
+      </div>
+
+      <p className="pb-10 text-center text-gray-700 text-xs">Safe · Verified · Free to join</p>
     </div>
   );
 }
