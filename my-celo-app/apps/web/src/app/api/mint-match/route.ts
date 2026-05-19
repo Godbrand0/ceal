@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
       try {
         const decoded = decodeEventLog({ abi: MatchNFTAbi, data: log.data, topics: log.topics });
         if (decoded.eventName === "Matched") {
-          onChainMatchId = String((decoded.args as { matchId: bigint }).matchId);
+          onChainMatchId = String((decoded.args as unknown as { matchId: bigint }).matchId);
           break;
         }
       } catch {
