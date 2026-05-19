@@ -118,23 +118,23 @@ export function GitHubActivity({ username, isOwn }: GitHubActivityProps) {
       {/* Heatmap */}
       <div className="bg-gray-800 rounded-2xl p-4">
         <p className="text-gray-400 text-xs mb-3">Commit activity (last 90 days)</p>
-        <div className="flex gap-1 overflow-x-auto pb-1">
+        <div className="flex gap-[3px] w-full">
           {weeks.map((week, wi) => (
-            <div key={wi} className="flex flex-col gap-1">
+            <div key={wi} className="flex flex-col gap-[3px] flex-1">
               {week.map((day) => (
                 <div
                   key={day.date}
                   title={`${day.date}: ${day.count} commit${day.count !== 1 ? "s" : ""}`}
-                  className={cn("w-3 h-3 rounded-sm", commitColor(day.count))}
+                  className={cn("w-full aspect-square rounded-[2px]", commitColor(day.count))}
                 />
               ))}
             </div>
           ))}
         </div>
-        <div className="flex items-center gap-1.5 mt-2">
+        <div className="flex items-center gap-1.5 mt-3">
           <span className="text-gray-600 text-xs">Less</span>
           {[0, 1, 5, 9, 12].map((n) => (
-            <div key={n} className={cn("w-3 h-3 rounded-sm", commitColor(n))} />
+            <div key={n} className={cn("w-2.5 h-2.5 rounded-[2px]", commitColor(n))} />
           ))}
           <span className="text-gray-600 text-xs">More</span>
         </div>
