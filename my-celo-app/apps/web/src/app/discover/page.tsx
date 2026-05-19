@@ -8,7 +8,8 @@ import { SwipeCard } from "@/components/SwipeCard";
 import { BottomNav } from "@/components/BottomNav";
 import { MatchModal } from "@/components/MatchModal";
 import { PremiumModal } from "@/components/PremiumModal";
-import { getDiscoverProfiles, recordSwipe, checkMutualLike, type DbProfile } from "@/lib/supabase";
+import { AuthGuard } from "@/components/AuthGuard";
+import { getDiscoverProfiles, recordSwipe, checkMutualLike, createMatch, type DbProfile } from "@/lib/supabase";
 
 export default function DiscoverPage() {
   const { address } = useAccount();
@@ -16,6 +17,7 @@ export default function DiscoverPage() {
   const [profiles, setProfiles]     = useState<DbProfile[]>([]);
   const [loading, setLoading]       = useState(true);
   const [matchedProfile, setMatchedProfile] = useState<DbProfile | null>(null);
+  const [matchedId, setMatchedId]           = useState<string | null>(null);
   const [showPremium, setShowPremium]       = useState(false);
   const [swipesLeft, setSwipesLeft]         = useState(10);
 
@@ -36,11 +38,46 @@ export default function DiscoverPage() {
       setProfiles((prev) => prev.slice(0, -1));
       setSwipesLeft((n) => Math.max(0, n - 1));
 
-      await recordSwipe(address, currentProfile.address, direction);
+      try {
+        await recordSwipe(address, currentProfile.address, direction);
+      } catch (err) {
+        console.error("[CEAL] recordSwipe failed:", err);
+        return;
+      }
 
       if (direction === "like") {
         const isMutual = await checkMutualLike(address, currentProfile.address);
-        if (isMutual) setMatchedProfile(currentProfile);
+        console.log("[CEAL] checkMutualLike →", isMutual, { swiper: address, swiped: currentProfile.address });
+
+        if (isMutual) {
+          try {
+            // Mint MatchNFT on-chain via oracle, then persist to Supabase
+            let onChainMatchId: string | null = null;
+            try {
+              const res = await fetch("/api/mint-match", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ user1: address, user2: currentProfile.address }),
+              });
+              const data = await res.json();
+              if (data.onChainMatchId) {
+                onChainMatchId = data.onChainMatchId;
+                console.log("[CEAL] MatchNFT minted →", data.txHash, "matchId:", onChainMatchId);
+              } else {
+                console.warn("[CEAL] mint-match returned no matchId:", data);
+              }
+            } catch (mintErr) {
+              console.warn("[CEAL] on-chain mint failed (match still saved off-chain):", mintErr);
+            }
+
+            const matchId = await createMatch(address, currentProfile.address, onChainMatchId);
+            console.log("[CEAL] createMatch success →", matchId);
+            setMatchedId(matchId);
+            setMatchedProfile(currentProfile);
+          } catch (err) {
+            console.error("[CEAL] createMatch failed:", err);
+          }
+        }
       }
     },
     [address, currentProfile]
@@ -63,8 +100,9 @@ export default function DiscoverPage() {
   }
 
   return (
-    <div className="flex-1 flex flex-col min-h-screen pb-20">
-      {/* Header */}
+    <AuthGuard>
+      <div className="flex-1 flex flex-col min-h-screen pb-20">
+        {/* Header */}
       <div className="flex items-center justify-between px-5 pt-14 pb-4">
         <div className="flex items-center gap-2">
           <Flame size={24} className="text-rose-400" />
@@ -165,7 +203,8 @@ export default function DiscoverPage() {
       {matchedProfile && (
         <MatchModal
           profile={matchedProfile}
-          onClose={() => setMatchedProfile(null)}
+          matchId={matchedId ?? undefined}
+          onClose={() => { setMatchedProfile(null); setMatchedId(null); }}
         />
       )}
 
@@ -177,6 +216,7 @@ export default function DiscoverPage() {
       )}
 
       <BottomNav />
-    </div>
+      </div>
+    </AuthGuard>
   );
 }

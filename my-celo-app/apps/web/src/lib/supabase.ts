@@ -45,11 +45,12 @@ export interface GiftData {
 }
 
 export interface DbMatch {
-  id: string;           // matchId (on-chain)
+  id: string;
   user1: string;
   user2: string;
   matched_at: string;
   last_message: string | null;
+  on_chain_match_id: string | null;
 }
 
 export interface DbPledgeEvidence {
@@ -96,7 +97,7 @@ export async function recordSwipe(swiper: string, swiped: string, direction: "li
     swiper: swiper.toLowerCase(),
     swiped: swiped.toLowerCase(),
     direction,
-  });
+  }, { onConflict: "swiper,swiped" });
   if (error) throw error;
 }
 
@@ -107,7 +108,7 @@ export async function checkMutualLike(addressA: string, addressB: string): Promi
     .eq("swiper", addressB.toLowerCase())
     .eq("swiped", addressA.toLowerCase())
     .eq("direction", "like")
-    .single();
+    .maybeSingle();
   return !!data;
 }
 
@@ -129,7 +130,7 @@ export async function getDiscoverProfiles(
   const { data } = await supabase
     .from("profiles")
     .select("*")
-    .not("address", "in", `(${excludeAddresses.map((a) => `"${a}"`).join(",")})`)
+    .not("address", "in", `(${excludeAddresses.join(",")})`)
     .limit(limit);
 
   return data ?? [];
@@ -187,6 +188,41 @@ export async function updateProfileTalent(address: string, talentProfileId: stri
     .update({ talent_profile_id: talentProfileId })
     .eq("address", address.toLowerCase());
   if (error) throw error;
+}
+
+export async function createMatch(
+  user1: string,
+  user2: string,
+  onChainMatchId?: string | null,
+): Promise<string> {
+  const id = crypto.randomUUID();
+  const { error } = await supabase.from("matches").insert({
+    id,
+    user1: user1.toLowerCase(),
+    user2: user2.toLowerCase(),
+    on_chain_match_id: onChainMatchId ?? null,
+  });
+  if (error) throw error;
+  return id;
+}
+
+export async function getMatchesForUser(address: string): Promise<DbMatch[]> {
+  const addr = address.toLowerCase();
+  const { data } = await supabase
+    .from("matches")
+    .select("*")
+    .or(`user1.eq.${addr},user2.eq.${addr}`)
+    .order("matched_at", { ascending: false });
+  return data ?? [];
+}
+
+export async function getMatchById(id: string): Promise<DbMatch | null> {
+  const { data } = await supabase
+    .from("matches")
+    .select("*")
+    .eq("id", id)
+    .single();
+  return data;
 }
 
 export async function getMutualMatchCount(address: string): Promise<number> {
