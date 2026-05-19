@@ -9,7 +9,7 @@ export async function GET(req: NextRequest) {
 
   const apiKey = process.env.TALENT_PROTOCOL_API_KEY;
   if (!apiKey) {
-    return NextResponse.json({ error: "api_key_not_configured" }, { status: 503 });
+    return NextResponse.json({ error: "api_key_not_configured" }, { status: 200 });
   }
 
   try {
