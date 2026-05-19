@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
     const chainId = parseInt(process.env.NEXT_PUBLIC_CHAIN_ID ?? "11142220");
     const rpcUrl  = process.env.CELO_RPC_URL ?? (chainId === 42220
       ? "https://forno.celo.org"
-      : "https://sepolia-forno.celo-testnet.org");
+      : "https://celo-sepolia.drpc.org");
 
     const chain   = chainId === 42220 ? celo : celoSepolia;
     const account = privateKeyToAccount(privateKey as `0x${string}`);
