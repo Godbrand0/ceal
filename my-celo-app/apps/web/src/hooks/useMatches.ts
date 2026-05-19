@@ -1,30 +1,31 @@
 "use client";
-import { useReadContract, useAccount } from "wagmi";
-import { CONTRACT_ADDRESSES, ABIS } from "@/lib/contracts";
-import type { MatchData } from "@/lib/types";
+import { useState, useEffect, useCallback } from "react";
+import { useAccount } from "wagmi";
+import { getMatchesForUser, getMatchById, type DbMatch } from "@/lib/supabase";
 
 export function useUserMatches() {
   const { address } = useAccount();
+  const [matches, setMatches] = useState<DbMatch[]>([]);
 
-  const { data: matchIds, refetch } = useReadContract({
-    address: CONTRACT_ADDRESSES.matchNFT,
-    abi: ABIS.matchNFT,
-    functionName: "getUserMatches",
-    args: [address!],
-    query: { enabled: !!address },
-  });
+  const load = useCallback(() => {
+    if (!address) return;
+    getMatchesForUser(address).then(setMatches);
+  }, [address]);
 
-  return { matchIds: (matchIds as bigint[] | undefined) ?? [], refetch };
+  useEffect(() => { load(); }, [load]);
+
+  return { matches, refetch: load };
 }
 
-export function useMatchData(matchId: bigint | undefined) {
-  const { data, refetch } = useReadContract({
-    address: CONTRACT_ADDRESSES.matchNFT,
-    abi: ABIS.matchNFT,
-    functionName: "getMatch",
-    args: [matchId!],
-    query: { enabled: !!matchId },
-  });
+export function useMatchData(matchId: string | undefined) {
+  const [match, setMatch] = useState<DbMatch | null>(null);
 
-  return { match: data as MatchData | undefined, refetch };
+  const load = useCallback(() => {
+    if (!matchId) return;
+    getMatchById(matchId).then(setMatch);
+  }, [matchId]);
+
+  useEffect(() => { load(); }, [load]);
+
+  return { match, refetch: load };
 }

@@ -26,6 +26,7 @@ import { uploadFileToPinata, uploadJsonToPinata, ipfsToHttp } from "@/lib/ipfs";
 import { truncateAddress } from "@/lib/app-utils";
 import { CONTRACT_ADDRESSES, ABIS, CUSD_SEPOLIA } from "@/lib/contracts";
 import { cn } from "@/lib/utils";
+import { AuthGuard } from "@/components/AuthGuard";
 
 interface TalentPassport {
   score: number;
@@ -210,7 +211,7 @@ export default function ProfilePage() {
   const { address } = useAccount();
   const { disconnect } = useDisconnect();
   const { tokenId, isVerified, hasProfile, refetch } = useProfile();
-  const { matchIds } = useUserMatches();
+  const { matches } = useUserMatches();
   const { isBoosted } = usePremium();
 
   const { data: cusdBalance } = useBalance({
@@ -235,11 +236,6 @@ export default function ProfilePage() {
   const [activeTab, setActiveTab]           = useState<"profile" | "github" | "nfts">("profile");
   const isFirstLoad                         = useRef(true);
 
-  useEffect(() => {
-    if (address === undefined) return;
-    if (!address) router.replace("/");
-  }, [address, router]);
-
   const loadProfile = useCallback(async () => {
     if (!address) return;
     if (isFirstLoad.current) {
@@ -251,9 +247,9 @@ export default function ProfilePage() {
       getMutualMatchCount(address),
     ]);
     setDbProfile(p);
-    setMatchCount(Math.max(count, matchIds.length));
+    setMatchCount(Math.max(count, matches.length));
     setProfileLoading(false);
-  }, [address, matchIds.length]);
+  }, [address, matches.length]);
 
   useEffect(() => { loadProfile(); }, [loadProfile]);
 
@@ -298,8 +294,9 @@ export default function ProfilePage() {
 
   if (!address || profileLoading) {
     return (
-      <div className="flex-1 flex flex-col min-h-screen pb-24">
-        <div className="pt-14 px-5 pb-4 flex items-center justify-between border-b border-gray-800">
+      <AuthGuard>
+        <div className="flex-1 flex flex-col min-h-screen pb-24">
+          <div className="pt-14 px-5 pb-4 flex items-center justify-between border-b border-gray-800">
           <div className="h-6 w-20 bg-gray-800 rounded-lg animate-pulse" />
           <div className="h-8 w-28 bg-gray-800 rounded-full animate-pulse" />
         </div>
@@ -309,15 +306,17 @@ export default function ProfilePage() {
           <div className="h-4 w-20 bg-gray-800 rounded-lg animate-pulse" />
         </div>
         <div className="mx-5 h-20 bg-gray-800 rounded-2xl animate-pulse" />
-        <BottomNav />
-      </div>
+          <BottomNav />
+        </div>
+      </AuthGuard>
     );
   }
 
   return (
-    <div className="flex-1 flex flex-col min-h-screen pb-24">
+    <AuthGuard>
+      <div className="flex-1 flex flex-col min-h-screen pb-24">
 
-      {/* Header */}
+        {/* Header */}
       <div className="pt-14 px-5 pb-4 flex items-center justify-between border-b border-gray-800">
         <h1 className="text-xl font-bold text-white">Profile</h1>
         <div className="flex items-center gap-3">
@@ -608,7 +607,8 @@ export default function ProfilePage() {
           onClose={() => setShowSelfModal(false)}
           onVerified={() => { setShowSelfModal(false); refetch(); loadProfile(); }}
         />
-      )}
-    </div>
+        )}
+      </div>
+    </AuthGuard>
   );
 }
