@@ -10,15 +10,21 @@ import { truncateAddress } from "@/lib/app-utils";
 import { GiftModal } from "@/components/GiftModal";
 import { GiftCard } from "@/components/GiftCard";
 import { DatePledgeModal } from "@/components/DatePledgeModal";
+import { ProfilePeekSheet } from "@/components/ProfilePeekSheet";
+import { AuthGuard } from "@/components/AuthGuard";
 import { cn } from "@/lib/utils";
 
 export default function MatchChatPage() {
   const params  = useParams<{ matchId: string }>();
   const router  = useRouter();
   const { address } = useAccount();
-  const matchId = BigInt(params.matchId ?? "0");
+  const matchIdStr = params.matchId ?? "";
 
-  const { match, refetch: refetchMatch } = useMatchData(matchId);
+  const { match, refetch: refetchMatch } = useMatchData(matchIdStr);
+
+  // Used only for on-chain gift/pledge interactions (0n = no-op when match isn't on-chain)
+  let matchIdBigInt: bigint;
+  try { matchIdBigInt = BigInt(matchIdStr); } catch { matchIdBigInt = 0n; }
 
   const [otherProfile, setOtherProfile] = useState<DbProfile | null>(null);
   const [messages, setMessages]         = useState<DbMessage[]>([]);
@@ -26,6 +32,7 @@ export default function MatchChatPage() {
   const [sending, setSending]           = useState(false);
   const [showGift, setShowGift]         = useState(false);
   const [showPledge, setShowPledge]     = useState(false);
+  const [showProfile, setShowProfile]   = useState(false);
 
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -83,8 +90,9 @@ export default function MatchChatPage() {
     : undefined;
 
   return (
-    <div className="flex flex-col min-h-screen">
-      {/* Header */}
+    <AuthGuard>
+      <div className="flex flex-col min-h-screen">
+        {/* Header */}
       <div className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] z-40
                       bg-gray-950/95 backdrop-blur border-b border-gray-800">
         <div className="flex items-center gap-3 px-4 py-3 pt-12">
@@ -92,7 +100,11 @@ export default function MatchChatPage() {
             <ArrowLeft size={22} />
           </button>
 
-          <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-800 shrink-0">
+          <button
+            onClick={() => otherProfile && setShowProfile(true)}
+            className="w-10 h-10 rounded-full overflow-hidden bg-gray-800 shrink-0
+                       hover:ring-2 hover:ring-rose-500 transition"
+          >
             {photo ? (
               <img src={photo} alt={name} className="w-full h-full object-cover" />
             ) : (
@@ -100,14 +112,14 @@ export default function MatchChatPage() {
                 🧑
               </div>
             )}
-          </div>
+          </button>
 
-          <div className="flex-1 min-w-0">
-            <p className="text-white font-semibold text-sm truncate">{name}</p>
-            {match?.dateCompleted && (
-              <p className="text-emerald-400 text-xs">Date completed ✓</p>
-            )}
-          </div>
+          <button
+            onClick={() => otherProfile && setShowProfile(true)}
+            className="flex-1 min-w-0 text-left"
+          >
+            <p className="text-white font-semibold text-sm truncate hover:text-rose-300 transition">{name}</p>
+          </button>
 
           <button
             onClick={() => setShowPledge(true)}
@@ -190,7 +202,7 @@ export default function MatchChatPage() {
       {/* Modals */}
       {showGift && otherAddress && (
         <GiftModal
-          matchId={matchId}
+          matchId={matchIdBigInt}
           recipient={otherAddress}
           onClose={() => setShowGift(false)}
           onSent={handleGiftSent}
@@ -199,12 +211,17 @@ export default function MatchChatPage() {
 
       {showPledge && match && (
         <DatePledgeModal
-          matchId={matchId}
+          matchId={matchIdBigInt}
           proposer={match.user1}
           acceptor={match.user2}
           onClose={() => { setShowPledge(false); refetchMatch(); }}
         />
       )}
-    </div>
+
+      {showProfile && otherProfile && (
+        <ProfilePeekSheet profile={otherProfile} onClose={() => setShowProfile(false)} />
+      )}
+      </div>
+    </AuthGuard>
   );
 }
