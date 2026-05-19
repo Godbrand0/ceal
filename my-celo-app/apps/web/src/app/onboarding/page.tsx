@@ -1,9 +1,9 @@
 "use client";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAccount } from "wagmi";
 import { Flame, Camera, Loader2, CheckCircle } from "lucide-react";
-import { useMintProfile } from "@/hooks/useProfile";
+import { useMintProfile, useProfile } from "@/hooks/useProfile";
 import { uploadFileToPinata, uploadJsonToPinata } from "@/lib/ipfs";
 import { upsertProfile } from "@/lib/supabase";
 
@@ -13,6 +13,13 @@ export default function OnboardingPage() {
   const router = useRouter();
   const { address } = useAccount();
   const { mint, isPending } = useMintProfile();
+  const { hasProfile, isLoadingProfile } = useProfile();
+
+  // Guard: if user already has a profile, send them to discover
+  useEffect(() => {
+    if (isLoadingProfile) return;
+    if (hasProfile) router.replace("/discover");
+  }, [hasProfile, isLoadingProfile, router]);
 
   const [step, setStep]   = useState<Step>("form");
   const [error, setError] = useState("");

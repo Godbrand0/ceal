@@ -1,8 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useAccount } from "wagmi";
-import { useConnectModal } from "@rainbow-me/rainbowkit";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useProfile } from "@/hooks/useProfile";
 import {
   Flame, ShieldCheck, Gift, Calendar, Loader2,
@@ -124,20 +123,22 @@ function FaqItem({ q, a }: { q: string; a: string }) {
 
 export default function LandingPage() {
   const router = useRouter();
-  const { address, isConnected } = useAccount();
-  const { openConnectModal } = useConnectModal();
-  const { hasProfile, isLoadingProfile, isProfileError } = useProfile();
+  const { hasProfile, isLoadingProfile } = useProfile();
+  const [isRouting, setIsRouting] = useState(false);
 
-  useEffect(() => {
-    if (!isConnected || !address || isLoadingProfile) return;
-    if (isProfileError || !hasProfile) {
-      router.replace("/onboarding");
-    } else {
-      router.replace("/discover");
+  function handleDiscover() {
+    setIsRouting(true);
+    if (!isLoadingProfile) {
+      router.push(hasProfile ? "/discover" : "/onboarding");
     }
-  }, [isConnected, address, hasProfile, isLoadingProfile, isProfileError, router]);
+  }
 
-  const isChecking = isConnected && isLoadingProfile;
+  // Handle routing if profile finishes loading after click
+  useEffect(() => {
+    if (isRouting && !isLoadingProfile) {
+      router.push(hasProfile ? "/discover" : "/onboarding");
+    }
+  }, [isRouting, isLoadingProfile, hasProfile, router]);
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-950 overflow-y-auto">
@@ -160,25 +161,84 @@ export default function LandingPage() {
           Stand someone up and you lose your deposit — no more ghosting.
         </p>
         <div className="mt-10 w-full max-w-xs space-y-3">
-          {isChecking ? (
-            <div className="flex items-center justify-center gap-3 py-4">
-              <Loader2 size={20} className="animate-spin text-rose-400" />
-              <span className="text-gray-400 text-sm">
-                {hasProfile ? "Welcome back…" : "Setting things up…"}
-              </span>
-            </div>
-          ) : (
-            <button
-              onClick={() => openConnectModal?.()}
-              className="w-full py-4 rounded-2xl bg-rose-500 hover:bg-rose-600 active:scale-95
-                         font-bold text-white text-base transition-all shadow-lg shadow-rose-500/25"
-            >
-              Get Started — It&apos;s Free
-            </button>
-          )}
-          <p className="text-gray-600 text-xs">
-            Sign in with MetaMask, MiniPay, or any crypto wallet
-          </p>
+          <ConnectButton.Custom>
+            {({
+              account,
+              chain,
+              openAccountModal,
+              openConnectModal,
+              authenticationStatus,
+              mounted,
+            }) => {
+              const ready = mounted && authenticationStatus !== "loading";
+              const connected =
+                ready &&
+                account &&
+                chain &&
+                (!authenticationStatus || authenticationStatus === "authenticated");
+
+              if (!ready) {
+                return (
+                  <div className="flex items-center justify-center gap-3 py-4">
+                    <Loader2 size={20} className="animate-spin text-rose-400" />
+                    <span className="text-gray-400 text-sm">Loading…</span>
+                  </div>
+                );
+              }
+
+              if (!connected) {
+                return (
+                  <>
+                    <button
+                      onClick={openConnectModal}
+                      className="w-full py-4 rounded-2xl bg-rose-500 hover:bg-rose-600 active:scale-95
+                                 font-bold text-white text-base transition-all shadow-lg shadow-rose-500/25"
+                    >
+                      Connect Wallet
+                    </button>
+                    <p className="text-gray-600 text-xs">
+                      Sign in with MetaMask, MiniPay, or any crypto wallet
+                    </p>
+                  </>
+                );
+              }
+
+              return (
+                <div className="space-y-4">
+                  <div className="bg-gray-900 border border-gray-800 rounded-2xl p-4 text-left flex flex-col gap-2">
+                    <p className="text-gray-500 text-[10px] uppercase tracking-widest font-semibold">Connected Wallet</p>
+                    <div className="flex items-center justify-between">
+                      <span className="text-white font-mono text-sm font-medium">
+                        {account.displayName}
+                      </span>
+                      <button
+                        onClick={openAccountModal}
+                        className="text-xs font-medium text-gray-400 hover:text-rose-400 transition"
+                      >
+                        Disconnect
+                      </button>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={handleDiscover}
+                    disabled={isRouting}
+                    className="w-full py-4 rounded-2xl bg-rose-500 hover:bg-rose-600 active:scale-95
+                               font-bold text-white text-base transition-all shadow-lg shadow-rose-500/25
+                               disabled:opacity-70 disabled:cursor-wait"
+                  >
+                    {isRouting || (isRouting && isLoadingProfile) ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <Loader2 size={18} className="animate-spin" /> Checking profile…
+                      </span>
+                    ) : (
+                      "Discover"
+                    )}
+                  </button>
+                </div>
+              );
+            }}
+          </ConnectButton.Custom>
         </div>
       </div>
 
