@@ -27,7 +27,7 @@ const wagmiConfig = createConfig({
   chains: [celoSepolia],
   connectors,
   transports: {
-    [celoSepolia.id]: http("https://sepolia-forno.celo-testnet.org"),
+    [celoSepolia.id]: http("https://celo-sepolia.drpc.org"),
   },
   ssr: true,
 });

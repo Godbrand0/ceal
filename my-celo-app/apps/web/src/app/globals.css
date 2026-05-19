@@ -77,6 +77,10 @@
   body {
     @apply bg-background text-foreground;
   }
+  /* Eliminate 300ms tap delay on all interactive elements */
+  button, a, select, [role="button"] {
+    touch-action: manipulation;
+  }
 }
 
 /* ── Light mode: remap the app's hardcoded dark grays ── */
