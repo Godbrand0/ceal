@@ -3,6 +3,7 @@ import { useWriteContract, useReadContract, useAccount, useSwitchChain } from "w
 import { celoSepolia } from "wagmi/chains";
 import { parseEther } from "viem";
 import { CONTRACT_ADDRESSES, ABIS, ERC20_ABI } from "@/lib/contracts";
+import { isMiniPay } from "@/lib/minipay";
 import type { PledgeData } from "@/lib/types";
 
 export function useDatePledge(pledgeId?: bigint) {
@@ -30,6 +31,8 @@ export function useDatePledge(pledgeId?: bigint) {
     query: { enabled: !!address },
   });
 
+  const feeField = isMiniPay() ? { feeCurrency: CONTRACT_ADDRESSES.cUSD } : {};
+
   const ensureChain = async () => {
     if (chain?.id !== celoSepolia.id) {
       await switchChainAsync({ chainId: celoSepolia.id });
@@ -46,6 +49,7 @@ export function useDatePledge(pledgeId?: bigint) {
         functionName: "approve",
         args: [CONTRACT_ADDRESSES.datePledge, amount],
         chainId: celoSepolia.id,
+        ...feeField,
       });
     }
   };
@@ -60,6 +64,7 @@ export function useDatePledge(pledgeId?: bigint) {
       functionName: "propose",
       args: [matchId, amount, scheduledAt],
       chainId: celoSepolia.id,
+      ...feeField,
     });
   };
 
@@ -71,6 +76,7 @@ export function useDatePledge(pledgeId?: bigint) {
       functionName: "accept",
       args: [id],
       chainId: celoSepolia.id,
+      ...feeField,
     });
   };
 
@@ -84,6 +90,7 @@ export function useDatePledge(pledgeId?: bigint) {
       functionName: "lock",
       args: [id],
       chainId: celoSepolia.id,
+      ...feeField,
     });
   };
 
@@ -95,6 +102,7 @@ export function useDatePledge(pledgeId?: bigint) {
       functionName: "confirm",
       args: [id],
       chainId: celoSepolia.id,
+      ...feeField,
     });
   };
 
@@ -106,6 +114,7 @@ export function useDatePledge(pledgeId?: bigint) {
       functionName: "unstake",
       args: [id],
       chainId: celoSepolia.id,
+      ...feeField,
     });
   };
 
@@ -117,6 +126,7 @@ export function useDatePledge(pledgeId?: bigint) {
       functionName: "signMutualCancel",
       args: [id],
       chainId: celoSepolia.id,
+      ...feeField,
     });
   };
 
@@ -128,6 +138,7 @@ export function useDatePledge(pledgeId?: bigint) {
       functionName: "resolveTimeout",
       args: [id],
       chainId: celoSepolia.id,
+      ...feeField,
     });
   };
 
@@ -139,6 +150,7 @@ export function useDatePledge(pledgeId?: bigint) {
       functionName: "cancel",
       args: [id],
       chainId: celoSepolia.id,
+      ...feeField,
     });
   };
 

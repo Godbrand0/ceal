@@ -37,7 +37,7 @@ export function GiftCard({ giftType, amount, message, isReceived }: GiftCardProp
     >
       <div className="text-4xl text-center mb-2">{gift.emoji}</div>
       <div className="text-center font-semibold text-rose-300 text-sm">{gift.label}</div>
-      <div className="text-center text-rose-400 text-xs mt-0.5">{amount} cUSD</div>
+      <div className="text-center text-rose-400 text-xs mt-0.5">{amount} USDm</div>
       {message && (
         <p className="text-gray-400 text-xs text-center mt-2 italic line-clamp-3">
           &ldquo;{message}&rdquo;
