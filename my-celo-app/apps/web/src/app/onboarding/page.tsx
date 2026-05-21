@@ -208,6 +208,9 @@ export default function OnboardingPage() {
               }}
             />
           </div>
+          <p className="text-center text-xs text-amber-500/80 max-w-[240px] mx-auto leading-relaxed">
+            Real photos only — no avatars, anime, or NFT art. Fake profiles are removed.
+          </p>
 
           {/* Name */}
           <div>
