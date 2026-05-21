@@ -1,6 +1,6 @@
 "use client";
 import { useWriteContract, useReadContract, useAccount, useSwitchChain } from "wagmi";
-import { celoSepolia } from "wagmi/chains";
+import { celo } from "wagmi/chains";
 import { parseEther, type Address } from "viem";
 import { CONTRACT_ADDRESSES, ABIS, ERC20_ABI } from "@/lib/contracts";
 import { isMiniPay } from "@/lib/minipay";
@@ -25,7 +25,7 @@ export function useGift() {
     abi: ERC20_ABI,
     functionName: "allowance",
     args: [address!, CONTRACT_ADDRESSES.giftRouter],
-    chainId: celoSepolia.id,
+    chainId: celo.id,
     query: { enabled: !!address },
   });
 
@@ -42,8 +42,8 @@ export function useGift() {
     giftType: number;
     message: string;
   }) => {
-    if (chain?.id !== celoSepolia.id) {
-      await switchChainAsync({ chainId: celoSepolia.id });
+    if (chain?.id !== celo.id) {
+      await switchChainAsync({ chainId: celo.id });
     }
 
     const amount = parseEther(amountEth);
@@ -58,7 +58,7 @@ export function useGift() {
         abi: ERC20_ABI,
         functionName: "approve",
         args: [CONTRACT_ADDRESSES.giftRouter, amount],
-        chainId: celoSepolia.id,
+        chainId: celo.id,
         ...feeCurrencyField,
       });
     }
@@ -68,7 +68,7 @@ export function useGift() {
       abi: ABIS.giftRouter,
       functionName: "sendGift",
       args: [matchId, recipient, amount, giftType, message],
-      chainId: celoSepolia.id,
+      chainId: celo.id,
       ...feeCurrencyField,
     });
   };

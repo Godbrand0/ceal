@@ -1,6 +1,6 @@
 "use client";
 import { useWriteContract, useReadContract, useAccount, useSwitchChain } from "wagmi";
-import { celoSepolia } from "wagmi/chains";
+import { celo } from "wagmi/chains";
 import { parseEther } from "viem";
 import { CONTRACT_ADDRESSES, ABIS, ERC20_ABI } from "@/lib/contracts";
 import { isMiniPay } from "@/lib/minipay";
@@ -16,7 +16,7 @@ export function useDatePledge(pledgeId?: bigint) {
     abi: ABIS.datePledge,
     functionName: "getPledge",
     args: [pledgeId!],
-    chainId: celoSepolia.id,
+    chainId: celo.id,
     query: { enabled: !!pledgeId },
   });
 
@@ -27,15 +27,15 @@ export function useDatePledge(pledgeId?: bigint) {
     abi: ERC20_ABI,
     functionName: "allowance",
     args: [address!, CONTRACT_ADDRESSES.datePledge],
-    chainId: celoSepolia.id,
+    chainId: celo.id,
     query: { enabled: !!address },
   });
 
   const feeField = isMiniPay() ? { feeCurrency: CONTRACT_ADDRESSES.cUSD } : {};
 
   const ensureChain = async () => {
-    if (chain?.id !== celoSepolia.id) {
-      await switchChainAsync({ chainId: celoSepolia.id });
+    if (chain?.id !== celo.id) {
+      await switchChainAsync({ chainId: celo.id });
     }
   };
 
@@ -48,7 +48,7 @@ export function useDatePledge(pledgeId?: bigint) {
         abi: ERC20_ABI,
         functionName: "approve",
         args: [CONTRACT_ADDRESSES.datePledge, amount],
-        chainId: celoSepolia.id,
+        chainId: celo.id,
         ...feeField,
       });
     }
@@ -63,7 +63,7 @@ export function useDatePledge(pledgeId?: bigint) {
       abi: ABIS.datePledge,
       functionName: "propose",
       args: [matchId, amount, scheduledAt],
-      chainId: celoSepolia.id,
+      chainId: celo.id,
       ...feeField,
     });
   };
@@ -75,7 +75,7 @@ export function useDatePledge(pledgeId?: bigint) {
       abi: ABIS.datePledge,
       functionName: "accept",
       args: [id],
-      chainId: celoSepolia.id,
+      chainId: celo.id,
       ...feeField,
     });
   };
@@ -89,7 +89,7 @@ export function useDatePledge(pledgeId?: bigint) {
       abi: ABIS.datePledge,
       functionName: "lock",
       args: [id],
-      chainId: celoSepolia.id,
+      chainId: celo.id,
       ...feeField,
     });
   };
@@ -101,7 +101,7 @@ export function useDatePledge(pledgeId?: bigint) {
       abi: ABIS.datePledge,
       functionName: "confirm",
       args: [id],
-      chainId: celoSepolia.id,
+      chainId: celo.id,
       ...feeField,
     });
   };
@@ -113,7 +113,7 @@ export function useDatePledge(pledgeId?: bigint) {
       abi: ABIS.datePledge,
       functionName: "unstake",
       args: [id],
-      chainId: celoSepolia.id,
+      chainId: celo.id,
       ...feeField,
     });
   };
@@ -125,7 +125,7 @@ export function useDatePledge(pledgeId?: bigint) {
       abi: ABIS.datePledge,
       functionName: "signMutualCancel",
       args: [id],
-      chainId: celoSepolia.id,
+      chainId: celo.id,
       ...feeField,
     });
   };
@@ -137,7 +137,7 @@ export function useDatePledge(pledgeId?: bigint) {
       abi: ABIS.datePledge,
       functionName: "resolveTimeout",
       args: [id],
-      chainId: celoSepolia.id,
+      chainId: celo.id,
       ...feeField,
     });
   };
@@ -149,7 +149,7 @@ export function useDatePledge(pledgeId?: bigint) {
       abi: ABIS.datePledge,
       functionName: "cancel",
       args: [id],
-      chainId: celoSepolia.id,
+      chainId: celo.id,
       ...feeField,
     });
   };
