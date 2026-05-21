@@ -2,10 +2,12 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { useConnect } from "wagmi";
+import { injected } from "wagmi/connectors";
 import { useProfile } from "@/hooks/useProfile";
 import {
   Flame, ShieldCheck, Gift, Calendar, Loader2,
-  Smartphone, UserCircle2, Sparkles, Heart,
+  Smartphone, UserCircle2, Heart, Trophy,
   ChevronDown, ChevronUp, HelpCircle, MessageCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -21,22 +23,22 @@ const steps = [
   {
     icon: <Smartphone size={20} className="text-rose-400" />,
     title: "Sign in with your account",
-    desc: "Connect with your existing crypto wallet — it takes just a tap, no password needed.",
+    desc: "Connect with your wallet — one tap, no password, no email.",
   },
   {
     icon: <UserCircle2 size={20} className="text-amber-400" />,
     title: "Create your profile",
-    desc: "Add your name, photo, and a short bio. Your profile is secured and uniquely yours.",
+    desc: "Add your photo, interests, and a short bio. You instantly own a profile — it's yours forever.",
   },
   {
-    icon: <Sparkles size={20} className="text-blue-400" />,
-    title: "Get verified",
-    desc: "Prove you're a real person and 18+ — no documents stored, just a quick check.",
+    icon: <Gift size={20} className="text-rose-400" />,
+    title: "Swipe, match & send gifts",
+    desc: "Like profiles, match with people, and send a small digital gift to show you're serious.",
   },
   {
-    icon: <Heart size={20} className="text-rose-400" />,
-    title: "Swipe, match & connect",
-    desc: "Like profiles, match with people, and send a small gift to show you're serious.",
+    icon: <Heart size={20} className="text-pink-400" />,
+    title: "Own your connections",
+    desc: "Every match mints a shared keepsake — a digital token you and your match both own.",
   },
 ];
 
@@ -44,32 +46,37 @@ const features = [
   {
     icon: <ShieldCheck size={20} className="text-blue-400" />,
     title: "Real people only",
-    desc: "Age verified by Self Protocol — no bots, no fake accounts, no catfishing.",
+    desc: "Age-verified by Self Protocol — no bots, no fake accounts, no catfishing.",
   },
   {
     icon: <Gift size={20} className="text-rose-400" />,
-    title: "Show genuine interest",
-    desc: "Send a small digital gift when you like someone — it means a lot more than a swipe.",
+    title: "Gift & be gifted",
+    desc: "Send a small digital gift when you like someone. Receive gifts from admirers. It means a lot more than a swipe.",
   },
   {
-    icon: <Calendar size={20} className="text-amber-400" />,
-    title: "Serious about dates",
-    desc: "Lock in a small deposit before a date. Show up or lose it — no more ghosting.",
+    icon: <Trophy size={20} className="text-amber-400" />,
+    title: "You own your story",
+    desc: "Sign up and get a profile you own. Match with someone and you both get a shared keepsake — automatically.",
+  },
+  {
+    icon: <Calendar size={20} className="text-emerald-400" />,
+    title: "No more ghosting",
+    desc: "Lock in a small deposit before a date. Show up and get it back. Ghost and lose it.",
   },
 ];
 
 const faqs = [
   {
     q: "What is CEAL?",
-    a: "CEAL is an on-chain dating app built on the Celo blockchain. It combines real identity verification, soulbound profile NFTs, and a stake-based date commitment system to create a dating experience where actions have real consequences.",
+    a: "CEAL is a dating app where every profile is real and every action means something. Sign up and you own your profile. Match with someone and you both get a shared digital keepsake. Send gifts, commit to dates, and build a reputation you actually earn.",
   },
   {
     q: "Do I need crypto to use CEAL?",
-    a: "You need a crypto wallet (like MetaMask or MiniPay) to sign in, but you don't need tokens to browse or match. You only need cUSD if you want to send gifts or lock a date pledge.",
+    a: "You need a digital wallet (like MetaMask or MiniPay) to sign in, but you don't need tokens to browse or match. You only need stablecoins (USDm, USDC, or USDT) if you want to send gifts or lock a date pledge.",
   },
   {
     q: "How does the date pledge work?",
-    a: "Before a date, both parties lock a small amount of cUSD in a smart contract. If the date happens and both confirm it with a photo, both get their full deposit back — no fee. If one person cancels before the date, they get a full refund too. If a mutual cancel is requested after the date (for example, one person didn't show), the platform keeps 20% as a no-show fee.",
+    a: "Before a date, both parties lock a small stablecoin deposit in a smart contract. If the date happens and both confirm it with a photo, both get their full deposit back — no fee. If one person cancels before the date, they get a full refund too. If a mutual cancel is requested after the date (for example, one person didn't show), the platform keeps 20% as a no-show fee.",
   },
   {
     q: "What happens if someone ghosts me?",
@@ -81,11 +88,11 @@ const faqs = [
   },
   {
     q: "How is my identity verified?",
-    a: "We use Self Protocol for age verification — it generates a zero-knowledge proof that you're 18+ without storing your documents. Your wallet address gets a verified flag stored both on-chain and in your profile.",
+    a: "We use Self Protocol for age verification — it confirms you're 18+ without storing any of your documents or personal data. Once verified, a badge appears on your profile.",
   },
   {
-    q: "What is a soulbound NFT?",
-    a: "When you create a profile, you're minted a ProfileNFT that is non-transferable (soulbound). It represents your identity on CEAL and can hold your reputation, Talent Protocol score, and verification status.",
+    q: "What do I own when I sign up?",
+    a: "When you create a profile, a digital token is issued to your wallet. It represents your identity on CEAL, holds your reputation and verified status, and cannot be transferred — it's uniquely yours.",
   },
   {
     q: "What is the GitHub integration for?",
@@ -125,6 +132,14 @@ export default function LandingPage() {
   const router = useRouter();
   const { hasProfile, isLoadingProfile } = useProfile();
   const [isRouting, setIsRouting] = useState(false);
+  const { connect } = useConnect();
+
+  // Auto-connect silently inside MiniPay — no button needed
+  useEffect(() => {
+    if (typeof window !== "undefined" && (window.ethereum as any)?.isMiniPay) {
+      connect({ connector: injected() });
+    }
+  }, [connect]);
 
   function handleDiscover() {
     setIsRouting(true);
@@ -157,8 +172,8 @@ export default function LandingPage() {
           Dating that actually means something
         </p>
         <p className="text-gray-400 text-sm max-w-xs leading-relaxed">
-          Every profile is real. Every gift is genuine.
-          Stand someone up and you lose your deposit — no more ghosting.
+          Sign up and own your profile. Match and own the moment.
+          Gift someone you like, and receive gifts in return. No fakes, no ghosting.
         </p>
         <div className="mt-10 w-full max-w-xs space-y-3">
           <ConnectButton.Custom>
@@ -197,7 +212,7 @@ export default function LandingPage() {
                       Connect Wallet
                     </button>
                     <p className="text-gray-600 text-xs">
-                      Sign in with MetaMask, MiniPay, or any crypto wallet
+                      Sign in with MetaMask, MiniPay, or any digital wallet
                     </p>
                   </>
                 );

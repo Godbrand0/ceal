@@ -18,6 +18,8 @@ export interface DbProfile {
   is_verified: boolean;
   talent_profile_id: string | null;
   github_username: string | null;
+  gender: string | null;
+  interests: string[];
   created_at: string;
 }
 
@@ -35,6 +37,7 @@ export interface DbMessage {
   sender: string;
   content: string;
   gift_data: GiftData | null;
+  media_url: string | null;
   created_at: string;
 }
 
@@ -90,6 +93,17 @@ export async function updateProfileGithub(address: string, githubUsername: strin
     .update({ github_username: githubUsername })
     .eq("address", address.toLowerCase());
   if (error) throw error;
+}
+
+export async function isGithubUsernameTaken(username: string, excludeAddress: string): Promise<boolean> {
+  const { data } = await supabase
+    .from("profiles")
+    .select("address")
+    .ilike("github_username", username)
+    .neq("address", excludeAddress.toLowerCase())
+    .limit(1)
+    .maybeSingle();
+  return !!data;
 }
 
 export async function recordSwipe(swiper: string, swiped: string, direction: "like" | "pass") {
@@ -163,13 +177,15 @@ export async function sendMessage(
   matchId: string,
   sender: string,
   content: string,
-  giftData?: GiftData
+  giftData?: GiftData,
+  mediaUrl?: string
 ) {
   const { error } = await supabase.from("messages").insert({
     match_id: matchId,
     sender: sender.toLowerCase(),
     content,
     gift_data: giftData ?? null,
+    media_url: mediaUrl ?? null,
   });
   if (error) throw error;
 }
