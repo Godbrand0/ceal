@@ -126,9 +126,17 @@ export function SwipeCard({ profile, onSwipeLeft, onSwipeRight, onSuperLike, isB
           <div className="absolute bottom-0 left-0 right-0 p-5">
             <div className="flex items-end justify-between">
               <div className="flex-1 min-w-0 pr-3">
-                <h2 className="text-2xl font-bold text-white">
-                  {profile.name}, {profile.age}
-                </h2>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h2 className="text-2xl font-bold text-white">
+                    {profile.name}, {profile.age}
+                  </h2>
+                  {profile.role && (
+                    <span className="px-2 py-0.5 rounded-full text-[11px] font-medium
+                                     bg-rose-500/20 border border-rose-500/30 text-rose-300">
+                      {profile.role}
+                    </span>
+                  )}
+                </div>
                 <p className="text-gray-300 text-sm mt-0.5">
                   {profile.city}
                   {profile.gender ? ` · ${profile.gender}` : ""}

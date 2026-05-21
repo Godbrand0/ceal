@@ -10,7 +10,7 @@ import {
   Loader2, ShieldCheck, Pencil, X, Camera, Github,
   LayoutGrid, Image as ImageIcon,
 } from "lucide-react";
-import { celoSepolia } from "wagmi/chains";
+import { celo } from "wagmi/chains";
 import { BottomNav } from "@/components/BottomNav";
 import { SelfVerificationModal } from "@/components/SelfVerificationModal";
 import { ReputationCard } from "@/components/ReputationCard";
@@ -25,7 +25,7 @@ import {
 } from "@/lib/supabase";
 import { uploadFileToPinata, uploadJsonToPinata, ipfsToHttp } from "@/lib/ipfs";
 import { truncateAddress } from "@/lib/app-utils";
-import { CONTRACT_ADDRESSES, ABIS, CUSD_SEPOLIA } from "@/lib/contracts";
+import { CONTRACT_ADDRESSES, ABIS, CUSD_MAINNET } from "@/lib/contracts";
 import { cn } from "@/lib/utils";
 import { AuthGuard } from "@/components/AuthGuard";
 
@@ -43,6 +43,14 @@ const INTERESTS = [
   "Music", "Travel", "Fitness", "Gaming", "Cooking", "Art",
   "Tech", "Movies", "Reading", "Web3", "Sports", "Photography",
   "Dancing", "Hiking", "Fashion", "Food", "Yoga", "Startups",
+];
+
+const ROLES = [
+  "Solidity Dev", "Smart Contract Auditor", "DeFi Builder", "NFT Creator",
+  "DAO Contributor", "Web3 Founder", "Protocol Engineer", "Crypto Trader",
+  "Frontend Dev", "Backend Dev", "Full Stack Dev", "Product Manager",
+  "UX Designer", "Data Scientist", "DevOps Engineer", "Mobile Dev",
+  "AI/ML Engineer", "Tech Founder", "Content Creator", "Marketer",
 ];
 
 // ── Edit sheet ────────────────────────────────────────────────────────────────
@@ -63,6 +71,7 @@ function EditSheet({ profile, address, onSave, onClose }: EditSheetProps) {
     github:        profile.github_username ?? "",
     gender:        profile.gender ?? "",
     interests:     profile.interests ?? [] as string[],
+    role:          profile.role ?? "",
     photo:         null as File | null,
     photoPreview:  profile.photos?.[0] ? ipfsToHttp(profile.photos[0]) : "",
   });
@@ -101,6 +110,7 @@ function EditSheet({ profile, address, onSave, onClose }: EditSheetProps) {
         city:      form.city.trim(),
         gender:    form.gender || null,
         interests: form.interests,
+        role:      form.role || null,
         photos,
         age:       profile.age,
         token_id:  profile.token_id,
@@ -257,6 +267,28 @@ function EditSheet({ profile, address, onSave, onClose }: EditSheetProps) {
             </div>
           </div>
 
+          {/* Role */}
+          <div>
+            <label className="block text-xs text-gray-400 mb-2">My role</label>
+            <div className="flex flex-wrap gap-2">
+              {ROLES.map((r) => (
+                <button
+                  key={r}
+                  type="button"
+                  onClick={() => setForm((f) => ({ ...f, role: f.role === r ? "" : r }))}
+                  className={cn(
+                    "px-3 py-1.5 rounded-full text-xs font-medium border transition",
+                    form.role === r
+                      ? "border-rose-500 bg-rose-500/15 text-white"
+                      : "border-gray-700 bg-gray-800 text-gray-400 hover:border-gray-600"
+                  )}
+                >
+                  {r}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div>
             <label className="block text-xs text-gray-400 mb-1">GitHub username</label>
             <div className="relative">
@@ -300,8 +332,8 @@ export default function ProfilePage() {
 
   const { data: cusdBalance } = useBalance({
     address,
-    token: CUSD_SEPOLIA,
-    chainId: celoSepolia.id,
+    token: CUSD_MAINNET,
+    chainId: celo.id,
     query: { enabled: !!address },
   });
 
@@ -444,6 +476,12 @@ export default function ProfilePage() {
               {dbProfile.age} · {dbProfile.city}
               {dbProfile.gender ? ` · ${dbProfile.gender}` : ""}
             </p>
+          )}
+          {dbProfile?.role && (
+            <span className="mt-1.5 inline-block px-3 py-0.5 rounded-full text-xs font-medium
+                             bg-rose-500/20 border border-rose-500/30 text-rose-300">
+              {dbProfile.role}
+            </span>
           )}
           {dbProfile?.bio && <p className="text-gray-500 text-xs mt-2 max-w-xs leading-relaxed">{dbProfile.bio}</p>}
           {dbProfile?.interests && dbProfile.interests.length > 0 && (
@@ -611,7 +649,7 @@ export default function ProfilePage() {
           )}
 
           {/* CeloScan */}
-          <a href={`https://sepolia.celoscan.io/address/${address}`}
+          <a href={`https://celoscan.io/address/${address}`}
             target="_blank" rel="noreferrer"
             className="flex items-center justify-between w-full bg-gray-800 rounded-2xl px-4 py-4
                        hover:bg-gray-700 transition">
@@ -674,7 +712,7 @@ export default function ProfilePage() {
                   ))}
                 </div>
                 <a
-                  href={`https://sepolia.celoscan.io/token/${CONTRACT_ADDRESSES.profileNFT}?a=${tokenId}`}
+                  href={`https://celoscan.io/token/${CONTRACT_ADDRESSES.profileNFT}?a=${tokenId}`}
                   target="_blank" rel="noreferrer"
                   className="flex items-center justify-center gap-2 w-full py-3 bg-gray-800 rounded-xl
                              text-gray-300 text-sm hover:bg-gray-700 transition"
@@ -742,7 +780,7 @@ export default function ProfilePage() {
                         ))}
                       </div>
                       <a
-                        href={`https://sepolia.celoscan.io/token/${CONTRACT_ADDRESSES.matchNFT}?a=${m.myTokenId}`}
+                        href={`https://celoscan.io/token/${CONTRACT_ADDRESSES.matchNFT}?a=${m.myTokenId}`}
                         target="_blank" rel="noreferrer"
                         className="flex items-center justify-center gap-2 w-full py-2.5 bg-gray-800 rounded-xl
                                    text-gray-300 text-sm hover:bg-gray-700 transition"
