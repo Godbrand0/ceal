@@ -1,6 +1,6 @@
 "use client";
 import { useReadContract, useReadContracts } from "wagmi";
-import { celoSepolia } from "wagmi/chains";
+import { celo } from "wagmi/chains";
 import { type Abi } from "viem";
 import { CONTRACT_ADDRESSES, ABIS } from "@/lib/contracts";
 import { truncateAddress } from "@/lib/app-utils";
@@ -27,7 +27,7 @@ export function useMatchNFTs(address?: `0x${string}`) {
     abi: ABIS.matchNFT,
     functionName: "getUserMatches",
     args: [address!],
-    chainId: celoSepolia.id,
+    chainId: celo.id,
     query: { enabled: !!address },
   });
 
@@ -39,7 +39,7 @@ export function useMatchNFTs(address?: `0x${string}`) {
       abi: ABIS.matchNFT as Abi,
       functionName: "getMatch",
       args: [id],
-      chainId: celoSepolia.id,
+      chainId: celo.id,
     })),
     query: { enabled: matchIds.length > 0 },
   });

@@ -1,7 +1,8 @@
 "use client";
 import { useReadContract, useWriteContract, useAccount, useSwitchChain } from "wagmi";
-import { celoSepolia } from "wagmi/chains";
+import { celo } from "wagmi/chains";
 import { CONTRACT_ADDRESSES, ABIS } from "@/lib/contracts";
+import { isMiniPay } from "@/lib/minipay";
 
 export function useProfile(address?: `0x${string}`) {
   const { address: self } = useAccount();
@@ -12,7 +13,7 @@ export function useProfile(address?: `0x${string}`) {
     abi: ABIS.profileNFT,
     functionName: "profileOf",
     args: [target!],
-    chainId: celoSepolia.id,
+    chainId: celo.id,
     query: { enabled: !!target },
   });
 
@@ -23,7 +24,7 @@ export function useProfile(address?: `0x${string}`) {
     abi: ABIS.profileNFT,
     functionName: "metadataURI",
     args: [tid!],
-    chainId: celoSepolia.id,
+    chainId: celo.id,
     query: { enabled: !!tid && tid > 0n },
   });
 
@@ -32,7 +33,7 @@ export function useProfile(address?: `0x${string}`) {
     abi: ABIS.profileNFT,
     functionName: "isVerified",
     args: [target!],
-    chainId: celoSepolia.id,
+    chainId: celo.id,
     query: { enabled: !!target },
   });
 
@@ -55,15 +56,16 @@ export function useMintProfile() {
   const { chain } = useAccount();
 
   const mint = async (ipfsURI: string) => {
-    if (chain?.id !== celoSepolia.id) {
-      await switchChainAsync({ chainId: celoSepolia.id });
+    if (chain?.id !== celo.id) {
+      await switchChainAsync({ chainId: celo.id });
     }
     return writeContractAsync({
       address: CONTRACT_ADDRESSES.profileNFT,
       abi: ABIS.profileNFT,
       functionName: "mint",
       args: [ipfsURI],
-      chainId: celoSepolia.id,
+      chainId: celo.id,
+      ...(isMiniPay() && { feeCurrency: CONTRACT_ADDRESSES.cUSD }),
     });
   };
 
@@ -76,15 +78,16 @@ export function useUpdateMetadata() {
   const { chain } = useAccount();
 
   const update = async (newURI: string) => {
-    if (chain?.id !== celoSepolia.id) {
-      await switchChainAsync({ chainId: celoSepolia.id });
+    if (chain?.id !== celo.id) {
+      await switchChainAsync({ chainId: celo.id });
     }
     return writeContractAsync({
       address: CONTRACT_ADDRESSES.profileNFT,
       abi: ABIS.profileNFT,
       functionName: "updateMetadata",
       args: [newURI],
-      chainId: celoSepolia.id,
+      chainId: celo.id,
+      ...(isMiniPay() && { feeCurrency: CONTRACT_ADDRESSES.cUSD }),
     });
   };
 

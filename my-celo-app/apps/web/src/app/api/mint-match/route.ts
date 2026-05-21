@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createPublicClient, createWalletClient, http, decodeEventLog } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
-import { celoSepolia } from "viem/chains";
+import { celo } from "viem/chains";
 import MatchNFTAbi from "@/abis/MatchNFT.json";
 
 const MATCH_NFT = (process.env.NEXT_PUBLIC_MATCH_NFT_ADDRESS ?? "") as `0x${string}`;
-const RPC       = process.env.CELO_RPC_URL || "https://celo-sepolia.drpc.org";
+const RPC       = process.env.CELO_RPC_URL || "https://forno.celo.org";
 
 export async function POST(req: NextRequest) {
   try {
@@ -23,8 +23,8 @@ export async function POST(req: NextRequest) {
     const account   = privateKeyToAccount(oracleKey);
     const transport = http(RPC);
 
-    const walletClient = createWalletClient({ account, chain: celoSepolia, transport });
-    const publicClient = createPublicClient({ chain: celoSepolia, transport });
+    const walletClient = createWalletClient({ account, chain: celo, transport });
+    const publicClient = createPublicClient({ chain: celo, transport });
 
     const txHash = await walletClient.writeContract({
       address: MATCH_NFT,
