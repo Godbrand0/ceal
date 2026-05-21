@@ -17,10 +17,11 @@ import { ReputationCard } from "@/components/ReputationCard";
 import { GitHubActivity } from "@/components/GitHubActivity";
 import { useProfile, useUpdateMetadata } from "@/hooks/useProfile";
 import { useUserMatches } from "@/hooks/useMatches";
+import { useMatchNFTs } from "@/hooks/useMatchNFTs";
 import { usePremium } from "@/hooks/usePremium";
 import {
   getProfile, upsertProfile, updateProfileTalent, updateProfileGithub,
-  getMutualMatchCount, type DbProfile,
+  isGithubUsernameTaken, getMutualMatchCount, type DbProfile,
 } from "@/lib/supabase";
 import { uploadFileToPinata, uploadJsonToPinata, ipfsToHttp } from "@/lib/ipfs";
 import { truncateAddress } from "@/lib/app-utils";
@@ -35,6 +36,14 @@ interface TalentPassport {
   skills_score: number;
   passport_id: number;
 }
+
+const GENDERS = ["Man", "Woman", "Non-binary", "Prefer not to say"];
+
+const INTERESTS = [
+  "Music", "Travel", "Fitness", "Gaming", "Cooking", "Art",
+  "Tech", "Movies", "Reading", "Web3", "Sports", "Photography",
+  "Dancing", "Hiking", "Fashion", "Food", "Yoga", "Startups",
+];
 
 // ── Edit sheet ────────────────────────────────────────────────────────────────
 interface EditSheetProps {
@@ -52,6 +61,8 @@ function EditSheet({ profile, address, onSave, onClose }: EditSheetProps) {
     bio:           profile.bio  ?? "",
     city:          profile.city ?? "",
     github:        profile.github_username ?? "",
+    gender:        profile.gender ?? "",
+    interests:     profile.interests ?? [] as string[],
     photo:         null as File | null,
     photoPreview:  profile.photos?.[0] ? ipfsToHttp(profile.photos[0]) : "",
   });
@@ -64,6 +75,15 @@ function EditSheet({ profile, address, onSave, onClose }: EditSheetProps) {
       setError("Name and city are required.");
       return;
     }
+    const newGithub = form.github.trim();
+    if (newGithub && newGithub !== (profile.github_username ?? "")) {
+      const taken = await isGithubUsernameTaken(newGithub, address);
+      if (taken) {
+        setError("That GitHub username is already linked to another account.");
+        return;
+      }
+    }
+
     setSaving(true);
     setError("");
     try {
@@ -76,12 +96,14 @@ function EditSheet({ profile, address, onSave, onClose }: EditSheetProps) {
 
       const updated: Partial<DbProfile> & { address: string } = {
         address,
-        name:   form.name.trim(),
-        bio:    form.bio.trim(),
-        city:   form.city.trim(),
+        name:      form.name.trim(),
+        bio:       form.bio.trim(),
+        city:      form.city.trim(),
+        gender:    form.gender || null,
+        interests: form.interests,
         photos,
-        age:    profile.age,
-        token_id: profile.token_id,
+        age:       profile.age,
+        token_id:  profile.token_id,
         is_verified: profile.is_verified,
         talent_profile_id: profile.talent_profile_id,
         github_username: form.github.trim() || null,
@@ -174,6 +196,67 @@ function EditSheet({ profile, address, onSave, onClose }: EditSheetProps) {
                          text-white placeholder-gray-500 focus:outline-none focus:border-rose-500 text-sm transition resize-none"
             />
           </div>
+          {/* Gender */}
+          <div>
+            <label className="block text-xs text-gray-400 mb-2">I am a…</label>
+            <div className="grid grid-cols-2 gap-2">
+              {GENDERS.map((g) => (
+                <button
+                  key={g}
+                  type="button"
+                  onClick={() => setForm((f) => ({ ...f, gender: g }))}
+                  className={cn(
+                    "py-2.5 rounded-xl border text-sm font-medium transition",
+                    form.gender === g
+                      ? "border-rose-500 bg-rose-500/15 text-white"
+                      : "border-gray-700 bg-gray-800 text-gray-400 hover:border-gray-600"
+                  )}
+                >
+                  {g}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Interests */}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-xs text-gray-400">My interests</label>
+              <span className="text-xs text-gray-600">{form.interests.length}/6</span>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {INTERESTS.map((interest) => {
+                const selected = form.interests.includes(interest);
+                const maxed    = form.interests.length >= 6 && !selected;
+                return (
+                  <button
+                    key={interest}
+                    type="button"
+                    disabled={maxed}
+                    onClick={() =>
+                      setForm((f) => ({
+                        ...f,
+                        interests: selected
+                          ? f.interests.filter((i) => i !== interest)
+                          : [...f.interests, interest],
+                      }))
+                    }
+                    className={cn(
+                      "px-3 py-1.5 rounded-full text-xs font-medium border transition",
+                      selected
+                        ? "border-rose-500 bg-rose-500/15 text-white"
+                        : maxed
+                          ? "border-gray-800 bg-gray-900 text-gray-700 cursor-not-allowed"
+                          : "border-gray-700 bg-gray-800 text-gray-400 hover:border-gray-600"
+                    )}
+                  >
+                    {interest}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
           <div>
             <label className="block text-xs text-gray-400 mb-1">GitHub username</label>
             <div className="relative">
@@ -213,6 +296,7 @@ export default function ProfilePage() {
   const { tokenId, isVerified, hasProfile, refetch } = useProfile();
   const { matches } = useUserMatches();
   const { isBoosted } = usePremium();
+  const { matches: matchNFTs, isLoading: matchNFTsLoading } = useMatchNFTs(address);
 
   const { data: cusdBalance } = useBalance({
     address,
@@ -403,9 +487,9 @@ export default function ProfilePage() {
           {cusdFormatted !== null && (
             <div className="flex items-center justify-between bg-gray-900 border border-gray-800 rounded-2xl px-4 py-4">
               <div>
-                <p className="text-gray-400 text-xs mb-0.5">cUSD Balance</p>
+                <p className="text-gray-400 text-xs mb-0.5">USDm Balance</p>
                 <p className="text-white font-bold text-xl">
-                  {cusdFormatted} <span className="text-gray-500 text-sm font-normal">cUSD</span>
+                  {cusdFormatted} <span className="text-gray-500 text-sm font-normal">USDm</span>
                 </p>
               </div>
               <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20
@@ -505,7 +589,7 @@ export default function ProfilePage() {
                   <span className="text-gray-600 text-xs">Prove you&apos;re 18+ — adds a verified badge</span>
                 </div>
               </div>
-              <span className="text-gray-600 text-xs shrink-0 ml-2">ZK proof</span>
+              <span className="text-gray-600 text-xs shrink-0 ml-2">Privacy check</span>
             </button>
           )}
 
@@ -541,7 +625,9 @@ export default function ProfilePage() {
 
       {/* Tab: NFTs */}
       {activeTab === "nfts" && (
-        <div className="px-5">
+        <div className="px-5 space-y-4">
+
+          {/* Profile NFT */}
           {hasProfile && tokenId ? (
             <div className="bg-gradient-to-br from-rose-900/30 to-gray-800 border border-rose-500/20 rounded-2xl overflow-hidden">
               {photo && (
@@ -584,10 +670,76 @@ export default function ProfilePage() {
           ) : (
             <div className="bg-gray-800 rounded-2xl p-8 text-center space-y-3">
               <ImageIcon size={36} className="mx-auto text-gray-600" />
-              <p className="text-gray-400 text-sm">No NFTs yet</p>
+              <p className="text-gray-400 text-sm">No profile NFT yet</p>
               <p className="text-gray-600 text-xs">Create your profile to mint your soulbound ProfileNFT.</p>
             </div>
           )}
+
+          {/* Match NFTs */}
+          <div>
+            <p className="text-gray-400 text-xs font-medium uppercase tracking-wide mb-3">Match NFTs</p>
+            {matchNFTsLoading ? (
+              <div className="flex items-center gap-3 bg-gray-800 rounded-2xl px-4 py-4">
+                <Loader2 size={16} className="text-gray-500 animate-spin" />
+                <span className="text-gray-500 text-sm">Loading match NFTs…</span>
+              </div>
+            ) : matchNFTs.length === 0 ? (
+              <div className="bg-gray-800 rounded-2xl p-6 text-center space-y-2">
+                <p className="text-gray-500 text-sm">No match NFTs yet</p>
+                <p className="text-gray-600 text-xs">Match with someone to mint a shared MatchNFT on-chain.</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {matchNFTs.map((m) => {
+                  const matchedDate = new Date(Number(m.matchedAt) * 1000).toLocaleDateString(undefined, {
+                    month: "short", day: "numeric", year: "numeric",
+                  });
+                  return (
+                    <div key={m.matchId.toString()}
+                      className="bg-gradient-to-br from-indigo-900/30 to-gray-800 border border-indigo-500/20 rounded-2xl p-4 space-y-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-indigo-500/20 flex items-center justify-center text-lg">
+                          💘
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-white font-semibold text-sm">MatchNFT #{m.myTokenId.toString()}</p>
+                          <p className="text-gray-400 text-xs truncate">Match #{m.matchId.toString()} · {matchedDate}</p>
+                        </div>
+                        {m.dateCompleted && (
+                          <span className="text-[10px] font-medium bg-emerald-500/20 text-emerald-400 rounded-full px-2 py-0.5 border border-emerald-500/20">
+                            Date done ✓
+                          </span>
+                        )}
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 text-xs">
+                        {[
+                          { label: "Partner",        value: m.partnerShort },
+                          { label: "Chain",          value: "Celo Sepolia" },
+                          { label: "Gifts sent",     value: m.giftsExchanged.toString() },
+                          { label: "Transferable",   value: "No (Soulbound)" },
+                        ].map(({ label, value }) => (
+                          <div key={label} className="bg-gray-800/60 rounded-xl px-3 py-2">
+                            <p className="text-gray-500">{label}</p>
+                            <p className="text-white font-medium mt-0.5">{value}</p>
+                          </div>
+                        ))}
+                      </div>
+                      <a
+                        href={`https://sepolia.celoscan.io/token/${CONTRACT_ADDRESSES.matchNFT}?a=${m.myTokenId}`}
+                        target="_blank" rel="noreferrer"
+                        className="flex items-center justify-center gap-2 w-full py-2.5 bg-gray-800 rounded-xl
+                                   text-gray-300 text-sm hover:bg-gray-700 transition"
+                      >
+                        <ExternalLink size={14} />
+                        View on CeloScan
+                      </a>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
         </div>
       )}
 

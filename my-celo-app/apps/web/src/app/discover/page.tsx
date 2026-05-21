@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { useAccount } from "wagmi";
 import { AnimatePresence, motion } from "framer-motion";
 import { Flame, Settings, X, Heart, Star } from "lucide-react";
@@ -9,10 +10,21 @@ import { BottomNav } from "@/components/BottomNav";
 import { MatchModal } from "@/components/MatchModal";
 import { PremiumModal } from "@/components/PremiumModal";
 import { AuthGuard } from "@/components/AuthGuard";
-import { getDiscoverProfiles, recordSwipe, checkMutualLike, createMatch, type DbProfile } from "@/lib/supabase";
+import { getDiscoverProfiles, getProfile, recordSwipe, checkMutualLike, createMatch, type DbProfile } from "@/lib/supabase";
+
+function profileCompletion(p: DbProfile): number {
+  let score = 0;
+  if (p.photos?.length)    score += 30;
+  if (p.bio?.trim())       score += 20;
+  if (p.gender)            score += 20;
+  if (p.interests?.length) score += 15;
+  if (p.is_verified)       score += 15;
+  return score;
+}
 
 export default function DiscoverPage() {
   const { address } = useAccount();
+  const router = useRouter();
 
   const [profiles, setProfiles]     = useState<DbProfile[]>([]);
   const [loading, setLoading]       = useState(true);
@@ -20,11 +32,23 @@ export default function DiscoverPage() {
   const [matchedId, setMatchedId]           = useState<string | null>(null);
   const [showPremium, setShowPremium]       = useState(false);
   const [swipesLeft, setSwipesLeft]         = useState(10);
+  const [completion, setCompletion]         = useState(100);
+
+  const INCOMPLETE_LIMIT = 5;
+  const isIncomplete = completion < 60;
 
   useEffect(() => {
     if (!address) return;
-    getDiscoverProfiles(address).then((p) => {
+    Promise.all([
+      getDiscoverProfiles(address),
+      getProfile(address),
+    ]).then(([p, myProfile]) => {
       setProfiles(p);
+      if (myProfile) {
+        const pct = profileCompletion(myProfile);
+        setCompletion(pct);
+        if (pct < 60) setSwipesLeft(INCOMPLETE_LIMIT);
+      }
       setLoading(false);
     });
   }, [address]);
@@ -34,6 +58,7 @@ export default function DiscoverPage() {
   const handleSwipe = useCallback(
     async (direction: "like" | "pass") => {
       if (!address || !currentProfile) return;
+      if (swipesLeft <= 0) return;
 
       setProfiles((prev) => prev.slice(0, -1));
       setSwipesLeft((n) => Math.max(0, n - 1));
@@ -120,6 +145,22 @@ export default function DiscoverPage() {
         </div>
       </div>
 
+      {/* Incomplete profile banner */}
+      {isIncomplete && (
+        <div className="mx-4 mb-2 px-4 py-3 rounded-2xl bg-amber-500/10 border border-amber-500/25 flex items-center justify-between gap-3">
+          <div>
+            <p className="text-amber-400 text-xs font-semibold">Profile {completion}% complete</p>
+            <p className="text-gray-400 text-xs mt-0.5">{swipesLeft} swipes left — finish your profile for unlimited.</p>
+          </div>
+          <button
+            onClick={() => router.push("/profile")}
+            className="shrink-0 text-xs font-semibold text-amber-400 bg-amber-500/15 px-3 py-1.5 rounded-xl hover:bg-amber-500/25 transition"
+          >
+            Complete
+          </button>
+        </div>
+      )}
+
       {/* Swipe area */}
       <div className="flex-1 relative px-4 flex flex-col">
         {profiles.length === 0 ? (
@@ -188,12 +229,32 @@ export default function DiscoverPage() {
             </div>
 
             {/* Swipes counter */}
-            {swipesLeft <= 3 && (
+            {swipesLeft <= 3 && swipesLeft > 0 && (
               <p className="text-center text-xs text-gray-500 pb-2">
-                {swipesLeft} swipes left ·{" "}
-                <button onClick={() => setShowPremium(true)} className="text-rose-400 underline">
-                  Unlock more
-                </button>
+                {swipesLeft} swipe{swipesLeft !== 1 ? "s" : ""} left ·{" "}
+                {isIncomplete ? (
+                  <button onClick={() => router.push("/profile")} className="text-amber-400 underline">
+                    Complete profile for more
+                  </button>
+                ) : (
+                  <button onClick={() => setShowPremium(true)} className="text-rose-400 underline">
+                    Unlock more
+                  </button>
+                )}
+              </p>
+            )}
+            {swipesLeft === 0 && (
+              <p className="text-center text-xs text-amber-400 pb-2">
+                Swipe limit reached ·{" "}
+                {isIncomplete ? (
+                  <button onClick={() => router.push("/profile")} className="underline">
+                    Complete your profile to unlock
+                  </button>
+                ) : (
+                  <button onClick={() => setShowPremium(true)} className="text-rose-400 underline">
+                    Unlock more
+                  </button>
+                )}
               </p>
             )}
           </>
