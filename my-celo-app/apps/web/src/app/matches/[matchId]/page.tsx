@@ -2,10 +2,10 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAccount } from "wagmi";
-import { ArrowLeft, Gift, Lock, Send, Loader2 } from "lucide-react";
+import { ArrowLeft, Gift, ImagePlus, Lock, Send, Loader2 } from "lucide-react";
 import { useMatchData } from "@/hooks/useMatches";
 import { getProfile, getMessages, sendMessage, subscribeToMessages, type DbProfile, type DbMessage } from "@/lib/supabase";
-import { ipfsToHttp } from "@/lib/ipfs";
+import { uploadFileToPinata, ipfsToHttp } from "@/lib/ipfs";
 import { truncateAddress } from "@/lib/app-utils";
 import { GiftModal } from "@/components/GiftModal";
 import { GiftCard } from "@/components/GiftCard";
@@ -30,7 +30,10 @@ export default function MatchChatPage() {
   const [messages, setMessages]         = useState<DbMessage[]>([]);
   const [text, setText]                 = useState("");
   const [sending, setSending]           = useState(false);
+  const [uploading, setUploading]       = useState(false);
   const [showGift, setShowGift]         = useState(false);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [showPledge, setShowPledge]     = useState(false);
   const [showProfile, setShowProfile]   = useState(false);
 
@@ -67,6 +70,21 @@ export default function MatchChatPage() {
       setText("");
     } finally {
       setSending(false);
+    }
+  }
+
+  async function handleMediaUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file || !address || !params.matchId) return;
+    setUploading(true);
+    try {
+      const ipfsUri = await uploadFileToPinata(file);
+      const mediaUrl = ipfsToHttp(ipfsUri);
+      const isVideo = file.type.startsWith("video/");
+      await sendMessage(params.matchId, address, isVideo ? "🎥 Video" : "📷 Photo", undefined, mediaUrl);
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
     }
   }
 
@@ -151,6 +169,23 @@ export default function MatchChatPage() {
                   message={msg.content}
                   isReceived={!isMine}
                 />
+              ) : msg.media_url ? (
+                <div className="max-w-[75%]">
+                  {msg.media_url.match(/\.(mp4|mov|webm|ogg)(\?|$)/i) ? (
+                    <video
+                      src={msg.media_url}
+                      controls
+                      className="rounded-2xl max-w-full max-h-64 object-cover"
+                    />
+                  ) : (
+                    <img
+                      src={msg.media_url}
+                      alt="media"
+                      className="rounded-2xl max-w-full max-h-64 object-cover cursor-pointer"
+                      onClick={() => window.open(msg.media_url!, "_blank")}
+                    />
+                  )}
+                </div>
               ) : (
                 <div className={cn(
                   "max-w-[75%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed",
@@ -177,6 +212,22 @@ export default function MatchChatPage() {
           >
             <Gift size={20} />
           </button>
+
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploading}
+            className="p-2.5 rounded-xl bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-white transition shrink-0 disabled:opacity-50"
+          >
+            {uploading ? <Loader2 size={20} className="animate-spin" /> : <ImagePlus size={20} />}
+          </button>
+
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*,video/*"
+            className="hidden"
+            onChange={handleMediaUpload}
+          />
 
           <input
             value={text}

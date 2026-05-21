@@ -3,6 +3,7 @@ import { useWriteContract, useReadContract, useAccount, useSwitchChain } from "w
 import { celoSepolia } from "wagmi/chains";
 import { parseEther, type Address } from "viem";
 import { CONTRACT_ADDRESSES, ABIS, ERC20_ABI } from "@/lib/contracts";
+import { isMiniPay } from "@/lib/minipay";
 
 export const GIFT_TYPES = [
   { id: 0, emoji: "👋", label: "Icebreaker", price: "0.3" },
@@ -47,6 +48,9 @@ export function useGift() {
 
     const amount = parseEther(amountEth);
 
+    const miniPay = isMiniPay();
+    const feeCurrencyField = miniPay ? { feeCurrency: CONTRACT_ADDRESSES.cUSD } : {};
+
     // Approve if needed
     if (!allowance || allowance < amount) {
       await writeContractAsync({
@@ -55,6 +59,7 @@ export function useGift() {
         functionName: "approve",
         args: [CONTRACT_ADDRESSES.giftRouter, amount],
         chainId: celoSepolia.id,
+        ...feeCurrencyField,
       });
     }
 
@@ -64,6 +69,7 @@ export function useGift() {
       functionName: "sendGift",
       args: [matchId, recipient, amount, giftType, message],
       chainId: celoSepolia.id,
+      ...feeCurrencyField,
     });
   };
 

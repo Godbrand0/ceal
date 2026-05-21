@@ -5,6 +5,13 @@ import { X, Loader2 } from "lucide-react";
 import { GIFT_TYPES, useGift } from "@/hooks/useGift";
 import type { Address } from "viem";
 import { cn } from "@/lib/utils";
+import { isMiniPay } from "@/lib/minipay";
+
+const MINIPAY_ADD_CASH = "https://link.minipay.xyz/add_cash?tokens=USDm,USDC,USDT";
+
+function isInsufficientBalance(msg: string) {
+  return /insufficient|balance|funds/i.test(msg);
+}
 
 interface GiftModalProps {
   matchId:   bigint;
@@ -78,7 +85,7 @@ export function GiftModal({ matchId, recipient, onClose, onSent }: GiftModalProp
               <span className="text-2xl">{gift.emoji}</span>
               <span className="text-[10px] text-gray-400 text-center leading-tight">{gift.label}</span>
               {gift.price && (
-                <span className="text-[10px] text-rose-400 font-medium">{gift.price} cUSD</span>
+                <span className="text-[10px] text-rose-400 font-medium">{gift.price} USDm</span>
               )}
             </button>
           ))}
@@ -87,7 +94,7 @@ export function GiftModal({ matchId, recipient, onClose, onSent }: GiftModalProp
         {/* Custom amount */}
         {selected === 6 && (
           <div className="mb-4">
-            <label className="block text-sm text-gray-400 mb-1">Amount (cUSD)</label>
+            <label className="block text-sm text-gray-400 mb-1">Amount (USDm)</label>
             <input
               type="number"
               min="0.3"
@@ -115,7 +122,17 @@ export function GiftModal({ matchId, recipient, onClose, onSent }: GiftModalProp
         </div>
 
         {error && (
-          <p className="text-rose-400 text-sm bg-rose-500/10 rounded-xl px-4 py-3 mb-4">{error}</p>
+          <div className="text-rose-400 text-sm bg-rose-500/10 rounded-xl px-4 py-3 mb-4">
+            <p>{error}</p>
+            {isMiniPay() && isInsufficientBalance(error) && (
+              <a
+                href={MINIPAY_ADD_CASH}
+                className="mt-2 flex items-center gap-1 text-xs font-semibold text-amber-400 underline"
+              >
+                Deposit stablecoins to continue →
+              </a>
+            )}
+          </div>
         )}
 
         <button
@@ -128,7 +145,7 @@ export function GiftModal({ matchId, recipient, onClose, onSent }: GiftModalProp
           {isPending ? (
             <><Loader2 size={18} className="animate-spin" /> Sending…</>
           ) : (
-            `Send ${activeGift?.emoji ?? ""} ${amount ? `(${amount} cUSD)` : ""}`
+            `Send ${activeGift?.emoji ?? ""} ${amount ? `(${amount} USDm)` : ""}`
           )}
         </button>
 

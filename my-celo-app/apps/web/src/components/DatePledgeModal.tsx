@@ -8,7 +8,11 @@ import {
 import { useDatePledge } from "@/hooks/useDatePledge";
 import { useAccount } from "wagmi";
 import { cn } from "@/lib/utils";
+import { isMiniPay } from "@/lib/minipay";
 import type { PledgeData } from "@/lib/types";
+
+const MINIPAY_ADD_CASH = "https://link.minipay.xyz/add_cash?tokens=USDm,USDC,USDT";
+const isInsufficientBalance = (msg: string) => /insufficient|balance|funds/i.test(msg);
 
 interface DatePledgeModalProps {
   matchId:  bigint;
@@ -221,7 +225,7 @@ export function DatePledgeModal({ matchId, pledgeId, proposer, acceptor, onClose
               />
             </div>
             <div>
-              <label className="block text-sm text-gray-400 mb-1">Pledge amount (cUSD each)</label>
+              <label className="block text-sm text-gray-400 mb-1">Pledge amount (USDm each)</label>
               <input
                 type="number"
                 min="0.5"
@@ -231,9 +235,18 @@ export function DatePledgeModal({ matchId, pledgeId, proposer, acceptor, onClose
                 className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3
                            text-white focus:outline-none focus:border-rose-500 text-sm"
               />
-              <p className="text-xs text-gray-500 mt-1">Minimum 0.5 cUSD each</p>
+              <p className="text-xs text-gray-500 mt-1">Minimum 0.5 USDm each</p>
             </div>
-            {error && <p className="text-rose-400 text-sm bg-rose-500/10 rounded-xl px-4 py-2">{error}</p>}
+            {error && (
+              <div className="text-rose-400 text-sm bg-rose-500/10 rounded-xl px-4 py-2">
+                <p>{error}</p>
+                {isMiniPay() && isInsufficientBalance(error) && (
+                  <a href={MINIPAY_ADD_CASH} className="mt-1 flex items-center gap-1 text-xs font-semibold text-amber-400 underline">
+                    Deposit stablecoins to continue →
+                  </a>
+                )}
+              </div>
+            )}
             <button
               disabled={!date || !amount || isPending}
               onClick={handlePropose}
@@ -260,7 +273,7 @@ export function DatePledgeModal({ matchId, pledgeId, proposer, acceptor, onClose
                   Status: {STATUS_LABEL[status] ?? "Unknown"}
                 </p>
                 <p className="text-gray-400 text-xs">
-                  {(Number(typedPledge.amountEach) / 1e18).toFixed(2)} cUSD each ·{" "}
+                  {(Number(typedPledge.amountEach) / 1e18).toFixed(2)} USDm each ·{" "}
                   {scheduledAt > 0 ? new Date(scheduledAt * 1000).toLocaleDateString() : "—"}
                 </p>
               </div>
@@ -429,7 +442,16 @@ export function DatePledgeModal({ matchId, pledgeId, proposer, acceptor, onClose
               )}
             </div>
 
-            {error && <p className="text-rose-400 text-sm bg-rose-500/10 rounded-xl px-4 py-2">{error}</p>}
+            {error && (
+              <div className="text-rose-400 text-sm bg-rose-500/10 rounded-xl px-4 py-2">
+                <p>{error}</p>
+                {isMiniPay() && isInsufficientBalance(error) && (
+                  <a href={MINIPAY_ADD_CASH} className="mt-1 flex items-center gap-1 text-xs font-semibold text-amber-400 underline">
+                    Deposit stablecoins to continue →
+                  </a>
+                )}
+              </div>
+            )}
           </div>
         ) : (
           <p className="text-center text-gray-500 text-sm py-6">No active pledge for this match.</p>

@@ -2,6 +2,7 @@
 
 import { useAccount, useBalance } from "wagmi";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { isMiniPay } from "@/lib/minipay";
 
 const cUSD_ADDRESS = "0x765de816845861e75a25fca122bb6898b8b1282a";
 const USDC_ADDRESS = "0xcebA9300f2b948710d2653dD7B07f33A8B32118C";
@@ -34,12 +35,14 @@ export function UserBalance() {
     <Card className="w-full max-w-md mx-auto mb-8">
       <CardHeader>
         <CardTitle className="text-lg font-medium">Connected Wallet</CardTitle>
-        <p className="text-sm text-muted-foreground truncate pt-1">{address}</p>
+        <p className="text-sm text-muted-foreground pt-1">{address.slice(0, 6)}…{address.slice(-4)}</p>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2 pt-2 border-t">
-          <BalanceDisplay address={address} symbol="CELO" token={undefined} />
-          <BalanceDisplay address={address} token={cUSD_ADDRESS} symbol="cUSD" />
+          {!isMiniPay() && (
+            <BalanceDisplay address={address} symbol="CELO" token={undefined} />
+          )}
+          <BalanceDisplay address={address} token={cUSD_ADDRESS} symbol="USDm" />
           <BalanceDisplay address={address} token={USDC_ADDRESS} symbol="USDC" />
           <BalanceDisplay address={address} token={USDT_ADDRESS} symbol="USDT" />
         </div>
