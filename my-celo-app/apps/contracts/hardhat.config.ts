@@ -36,15 +36,15 @@ const config: HardhatUserConfig = {
   },
   etherscan: {
     apiKey: {
-      celo: process.env.ETHERSCAN_API_KEY || "",
-      "celo-sepolia": process.env.ETHERSCAN_API_KEY || "",
+      celo: process.env.CELOSCAN_API_KEY || process.env.ETHERSCAN_API_KEY || "",
+      "celo-sepolia": process.env.CELOSCAN_API_KEY || process.env.ETHERSCAN_API_KEY || "",
     },
     customChains: [
       {
         network: "celo",
         chainId: 42220,
         urls: {
-          apiURL: "https://api.etherscan.io/v2/api",
+          apiURL: "https://api.etherscan.io/v2/api?chainid=42220",
           browserURL: "https://celoscan.io",
         },
       },
@@ -52,8 +52,8 @@ const config: HardhatUserConfig = {
         network: "celo-sepolia",
         chainId: 11142220,
         urls: {
-          apiURL: "https://api.etherscan.io/v2/api",
-          browserURL: "https://sepolia.celoscan.io/",
+          apiURL: "https://api-alfajores.celoscan.io/api",
+          browserURL: "https://alfajores.celoscan.io",
         },
       },
     ],

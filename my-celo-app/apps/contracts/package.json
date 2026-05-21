@@ -8,9 +8,10 @@
     "compile": "hardhat compile",
     "test": "hardhat test",
     "deploy": "hardhat ignition deploy ignition/modules/CEAL.ts",
-    "deploy:celo-sepolia": "hardhat ignition deploy ignition/modules/CEAL.ts --network celo-sepolia",
-    "deploy:celo": "hardhat ignition deploy ignition/modules/CEAL.ts --network celo",
-    "verify": "hardhat verify",
+    "deploy:sepolia": "hardhat ignition deploy ignition/modules/CEAL.ts --network celo-sepolia --parameters ignition/parameters/sepolia.json",
+    "deploy:mainnet": "hardhat ignition deploy ignition/modules/CEAL.ts --network celo --parameters ignition/parameters/mainnet.json",
+    "verify:mainnet": "hardhat ignition verify chain-42220 --include-unrelated-contracts",
+    "verify:sepolia": "hardhat ignition verify chain-11142220",
     "clean": "hardhat clean",
     "typechain": "hardhat typechain"
   },
