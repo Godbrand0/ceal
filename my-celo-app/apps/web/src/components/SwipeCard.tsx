@@ -129,9 +129,31 @@ export function SwipeCard({ profile, onSwipeLeft, onSwipeRight, onSuperLike, isB
                 <h2 className="text-2xl font-bold text-white">
                   {profile.name}, {profile.age}
                 </h2>
-                <p className="text-gray-300 text-sm mt-0.5">{profile.city}</p>
+                <p className="text-gray-300 text-sm mt-0.5">
+                  {profile.city}
+                  {profile.gender ? ` · ${profile.gender}` : ""}
+                </p>
                 {profile.bio && (
                   <p className="text-gray-400 text-sm mt-2 line-clamp-2">{profile.bio}</p>
+                )}
+                {profile.interests && profile.interests.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mt-2">
+                    {profile.interests.slice(0, 4).map((interest) => (
+                      <span
+                        key={interest}
+                        className="px-2.5 py-0.5 rounded-full text-[11px] font-medium
+                                   bg-white/10 backdrop-blur text-white/80 border border-white/15"
+                      >
+                        {interest}
+                      </span>
+                    ))}
+                    {profile.interests.length > 4 && (
+                      <span className="px-2.5 py-0.5 rounded-full text-[11px] font-medium
+                                       bg-white/10 backdrop-blur text-white/60 border border-white/15">
+                        +{profile.interests.length - 4}
+                      </span>
+                    )}
+                  </div>
                 )}
               </div>
 

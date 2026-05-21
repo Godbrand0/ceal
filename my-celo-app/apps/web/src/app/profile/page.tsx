@@ -439,8 +439,25 @@ export default function ProfilePage() {
             <h2 className="text-2xl font-bold text-white">{dbProfile?.name ?? truncateAddress(address)}</h2>
             {isVerified && <BadgeCheck size={22} className="text-blue-400" />}
           </div>
-          {dbProfile && <p className="text-gray-400 text-sm mt-0.5">{dbProfile.age} · {dbProfile.city}</p>}
+          {dbProfile && (
+            <p className="text-gray-400 text-sm mt-0.5">
+              {dbProfile.age} · {dbProfile.city}
+              {dbProfile.gender ? ` · ${dbProfile.gender}` : ""}
+            </p>
+          )}
           {dbProfile?.bio && <p className="text-gray-500 text-xs mt-2 max-w-xs leading-relaxed">{dbProfile.bio}</p>}
+          {dbProfile?.interests && dbProfile.interests.length > 0 && (
+            <div className="flex flex-wrap justify-center gap-1.5 mt-3 max-w-xs">
+              {dbProfile.interests.map((interest) => (
+                <span
+                  key={interest}
+                  className="px-3 py-1 rounded-full text-xs font-medium bg-gray-800 border border-gray-700 text-gray-300"
+                >
+                  {interest}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
         <button onClick={() => setShowEditSheet(true)}
           className="flex items-center gap-2 px-5 py-2 rounded-full bg-gray-800
