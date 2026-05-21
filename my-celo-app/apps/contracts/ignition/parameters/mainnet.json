@@ -1,0 +1,10 @@
+{
+  "CEALModule": {
+    "network": "mainnet",
+
+    "treasury":    "0x87fe954D9463FaA7017bbb7931A5D25995c362E2",
+    "oracle":      "0x87fe954D9463FaA7017bbb7931A5D25995c362E2",
+    "selfVerifier":"0x87fe954D9463FaA7017bbb7931A5D25995c362E2",
+    "relayer":     "0x87fe954D9463FaA7017bbb7931A5D25995c362E2"
+  }
+}

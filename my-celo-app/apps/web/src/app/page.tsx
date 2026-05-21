@@ -9,6 +9,7 @@ import {
   Flame, ShieldCheck, Gift, Calendar, Loader2,
   Smartphone, UserCircle2, Heart, Trophy,
   ChevronDown, ChevronUp, HelpCircle, MessageCircle,
+  Fuel, CheckCircle2, ExternalLink,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -123,6 +124,91 @@ function FaqItem({ q, a }: { q: string; a: string }) {
         <div className="px-4 pb-4">
           <p className="text-gray-400 text-sm leading-relaxed">{a}</p>
         </div>
+      )}
+    </div>
+  );
+}
+
+type FaucetState = "idle" | "loading" | "success" | "cooldown" | "error";
+
+function FaucetButton({ address }: { address: string }) {
+  const [state, setState]     = useState<FaucetState>("idle");
+  const [txHash, setTxHash]   = useState("");
+  const [message, setMessage] = useState("");
+
+  async function handleClaim() {
+    setState("loading");
+    try {
+      const res  = await fetch("/api/faucet/claim", {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({ address }),
+      });
+      const data = await res.json();
+
+      if (res.ok) {
+        setTxHash(data.txHash ?? "");
+        setState("success");
+      } else if (res.status === 429) {
+        setMessage(data.unlocksAt
+          ? `Come back at ${new Date(data.unlocksAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`
+          : "Already claimed today");
+        setState("cooldown");
+      } else {
+        setMessage(data.error ?? "Something went wrong");
+        setState("error");
+      }
+    } catch {
+      setMessage("Network error — try again");
+      setState("error");
+    }
+  }
+
+  if (state === "success") {
+    return (
+      <div className="flex items-center gap-3 w-full bg-emerald-500/10 border border-emerald-500/20
+                      rounded-2xl px-4 py-3 text-sm">
+        <CheckCircle2 size={18} className="text-emerald-400 shrink-0" />
+        <span className="text-emerald-300 font-medium flex-1">0.005 CELO sent to your wallet!</span>
+        {txHash && (
+          <a href={`https://celoscan.io/tx/${txHash}`} target="_blank" rel="noreferrer"
+             className="text-emerald-500 hover:text-emerald-300 transition shrink-0">
+            <ExternalLink size={14} />
+          </a>
+        )}
+      </div>
+    );
+  }
+
+  if (state === "cooldown") {
+    return (
+      <div className="flex items-center gap-3 w-full bg-gray-800/60 border border-gray-700
+                      rounded-2xl px-4 py-3 text-sm">
+        <Fuel size={16} className="text-gray-500 shrink-0" />
+        <span className="text-gray-500">{message}</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-1.5">
+      <button
+        onClick={handleClaim}
+        disabled={state === "loading"}
+        className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl
+                   border border-gray-700 bg-gray-800/60 hover:bg-gray-800 active:scale-95
+                   text-gray-300 text-sm font-medium transition-all disabled:opacity-60
+                   disabled:cursor-wait"
+      >
+        {state === "loading" ? (
+          <Loader2 size={15} className="animate-spin text-gray-400" />
+        ) : (
+          <Fuel size={15} className="text-amber-400" />
+        )}
+        {state === "loading" ? "Claiming…" : "Claim daily gas (0.005 CELO)"}
+      </button>
+      {state === "error" && (
+        <p className="text-rose-400 text-xs text-center">{message}</p>
       )}
     </div>
   );
@@ -250,6 +336,10 @@ export default function LandingPage() {
                       "Discover"
                     )}
                   </button>
+
+                  {process.env.NEXT_PUBLIC_FAUCET_ADDRESS && (
+                    <FaucetButton address={account.address} />
+                  )}
                 </div>
               );
             }}
