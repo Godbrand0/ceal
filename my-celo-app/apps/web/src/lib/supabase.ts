@@ -20,6 +20,7 @@ export interface DbProfile {
   github_username: string | null;
   gender: string | null;
   interests: string[];
+  role: string | null;
   created_at: string;
 }
 

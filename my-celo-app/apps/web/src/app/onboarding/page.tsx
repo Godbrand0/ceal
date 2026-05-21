@@ -18,6 +18,16 @@ const INTERESTS = [
   "Dancing", "Hiking", "Fashion", "Food", "Yoga", "Startups",
 ];
 
+const ROLES = [
+  // Web3
+  "Solidity Dev", "Smart Contract Auditor", "DeFi Builder", "NFT Creator",
+  "DAO Contributor", "Web3 Founder", "Protocol Engineer", "Crypto Trader",
+  // Web2
+  "Frontend Dev", "Backend Dev", "Full Stack Dev", "Product Manager",
+  "UX Designer", "Data Scientist", "DevOps Engineer", "Mobile Dev",
+  "AI/ML Engineer", "Tech Founder", "Content Creator", "Marketer",
+];
+
 function ProgressBar({ step }: { step: Step }) {
   const pct = step === "basics" ? 50 : step === "identity" ? 100 : 100;
   return (
@@ -62,6 +72,7 @@ export default function OnboardingPage() {
     photoPreview: "",
     gender:       "",
     interests:    [] as string[],
+    role:         "",
   });
 
   function setField(field: string, value: string | File | null) {
@@ -113,6 +124,7 @@ export default function OnboardingPage() {
         bio:       form.bio,
         gender:    form.gender || null,
         interests: form.interests,
+        role:      form.role || null,
         photos:    photoUri ? [photoUri] : [],
         token_id:  null,
         is_verified: false,
@@ -165,7 +177,9 @@ export default function OnboardingPage() {
 
   /* ── Step 1: Basics ─────────────────────────────────────────── */
   if (step === "basics") {
-    const canAdvance = !!form.name && !!form.age && !!form.city;
+    const ageNum = Number(form.age);
+    const ageError = form.age && (ageNum < 18 || ageNum > 99) ? "You must be 18 or older to join CEAL." : "";
+    const canAdvance = !!form.name && !!form.age && !!form.city && !ageError;
     return (
       <div className="flex flex-col min-h-screen">
         <ProgressBar step="basics" />
@@ -238,10 +252,14 @@ export default function OnboardingPage() {
                 value={form.age}
                 onChange={(e) => setField("age", e.target.value)}
                 placeholder="25"
-                className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3
-                           text-white placeholder-gray-500 focus:outline-none focus:border-rose-500
-                           transition text-sm"
+                className={cn(
+                  "w-full bg-gray-800 border rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none transition text-sm",
+                  ageError ? "border-rose-500 focus:border-rose-500" : "border-gray-700 focus:border-rose-500"
+                )}
               />
+              {ageError && (
+                <p className="text-rose-400 text-xs mt-1">{ageError}</p>
+              )}
             </div>
             <div>
               <label className="block text-sm text-gray-400 mb-1">City</label>
@@ -318,6 +336,29 @@ export default function OnboardingPage() {
               </button>
             ))}
           </div>
+        </div>
+
+        {/* Role */}
+        <div>
+          <label className="block text-sm text-gray-400 mb-3">My role</label>
+          <div className="flex flex-wrap gap-2">
+            {ROLES.map((r) => (
+              <button
+                key={r}
+                type="button"
+                onClick={() => setField("role", form.role === r ? "" : r)}
+                className={cn(
+                  "px-4 py-2 rounded-full text-sm font-medium border transition",
+                  form.role === r
+                    ? "border-rose-500 bg-rose-500/15 text-white"
+                    : "border-gray-700 bg-gray-800 text-gray-400 hover:border-gray-500 hover:text-gray-300"
+                )}
+              >
+                {r}
+              </button>
+            ))}
+          </div>
+          <p className="text-gray-600 text-xs mt-2">Pick one that best describes you</p>
         </div>
 
         {/* Interests */}
