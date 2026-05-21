@@ -1,0 +1,10 @@
+{
+  "CEALModule": {
+    "network": "sepolia",
+
+    "treasury":    "REPLACE_WITH_YOUR_TREASURY_WALLET",
+    "oracle":      "REPLACE_WITH_YOUR_ORACLE_WALLET",
+    "selfVerifier":"REPLACE_WITH_SELF_PROTOCOL_VERIFIER",
+    "relayer":     "REPLACE_WITH_YOUR_RELAYER_WALLET"
+  }
+}
