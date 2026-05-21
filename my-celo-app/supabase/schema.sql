@@ -23,6 +23,10 @@ create table if not exists profiles (
   token_id            integer,                 -- on-chain tokenId, set after mint confirms
   is_verified         boolean     not null default false,
   talent_profile_id   text,
+  github_username     text,
+  gender              text,                    -- 'Man' | 'Woman' | 'Non-binary' | 'Prefer not to say'
+  interests           text[]      not null default '{}',  -- up to 6 interest tags
+  role                text,                    -- e.g. 'Solidity Dev', 'Product Manager'
   created_at          timestamptz not null default now(),
   updated_at          timestamptz not null default now()
 );
