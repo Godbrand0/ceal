@@ -139,7 +139,7 @@ function FaucetButton({ address }: { address: string }) {
   async function handleClaim() {
     setState("loading");
     try {
-      const res  = await fetch("/api/faucet/claim", {
+      const res  = await fetch("/api/faucet", {
         method:  "POST",
         headers: { "Content-Type": "application/json" },
         body:    JSON.stringify({ address }),
